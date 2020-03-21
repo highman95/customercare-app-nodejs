@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken')
-const { BadRequestError } = require('./http-errors')
+const jwt = require('jsonwebtoken');
+const { BadRequestError } = require('./http-errors');
 
 module.exports = {
-    generateToken: (payload) => jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h', subject: 'Cust0merCare-nodeJS' }),
+    generateToken: (payload) => jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: `${process.env.JWT_ELAPSE}h`, subject: 'Cu$t0merCar£-nodeJS' }),
 
     isValidEmail: (email) => (!email && /^([a-zA-Z0-9_\-]+)(\.)?([a-zA-Z0-9_\-]+)@([a-zA-Z]+)\.([a-zA-Z]{2,})$/.test(email)),
 
