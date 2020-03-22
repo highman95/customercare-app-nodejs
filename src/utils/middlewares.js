@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 //#region authentication middleware
 const auth = (req, res, next) => {
     const { token } = req.headers;
-    if (!!token) return next(new Error('Token is missing'))
+    if (!token) return next(new Error('Token is missing'));
 
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     if (req.body.userId && req.body.userId !== decodedToken.userId) {
@@ -15,7 +15,7 @@ const auth = (req, res, next) => {
     next();
 };
 
-module.exports.auth = auth;
+module.exports.authWare = auth;
 //#endregion
 
 
@@ -32,5 +32,5 @@ const fileFilter = (req, file, cb) => {
     cb(isProper ? null : new TypeError('Only JPEG/PNG images are acceptable'), isGif);
 };
 
-module.exports.multer = multer({ storage, fileFilter, limits: { fileSize: 1000000 } });//.single('photo');
+module.exports.multerWare = multer({ storage, fileFilter, limits: { fileSize: 1000000 } });//.single('photo');
 //#endregion
