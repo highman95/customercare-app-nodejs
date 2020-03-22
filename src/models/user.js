@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { dbEntities, isValidEmail, validateParameters } = require('../utils/helpers');
-const { BadRequestError, ConflictError, NotAcceptableError, UnauthorizedError } = require('../utils/http-errors');
+const { BadRequestError, ConflictError, DatabaseError, NotAcceptableError, UnauthorizedError } = require('../utils/http-errors');
 
 module.exports = {
     async authenticate(username, password) {
@@ -13,7 +13,7 @@ module.exports = {
             const same = await bcrypt.compare(password, user.password);
             if (!same) throw new Error('Password is incorrect');
 
-            if (!user.active) throw new Error('Your account is NOT active');
+            if (user.disabled) throw new Error('Your account is NOT active');
             return user;
         } catch (e) {
             throw new UnauthorizedError('Invalid username / password');
@@ -44,6 +44,17 @@ module.exports = {
             return (result.rowCount === 0) ? null : result.rows[0];
         } catch (e) {
             throw new DatabaseError('User could not be saved');
+        }
+    },
+
+    async toggleDisabled(userId, disabled) {
+        if (!userId) throw new BadRequestError('The user information is missing');
+
+        try {
+            const result = await db.query(`UPDATE ${dbEntities.users} SET disabled = $1 WHERE id = $2 RETURNING id`, [disabled, userId]);
+            return (result.rowCount === 0) ? null : result.rows[0];
+        } catch (e) {
+            throw new DatabaseError(`The account could not be ${disabled ? 'de-' : ''}activated`)
         }
     },
 
