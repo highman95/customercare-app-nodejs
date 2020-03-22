@@ -12,5 +12,16 @@ module.exports = {
         } catch (e) {
             next(e)
         }
+    },
+
+    create: async (req, res, next) => {
+        const { first_name, last_name, gender, address, email, password } = req.body;
+
+        try {
+            const user = await userModel.create(first_name, last_name, gender, address, email, password);
+            res.status(201).json({ status: 'success', data: { user, message: 'User created successfully' } });
+        } catch (e) {
+            next(e)
+        }
     }
 }
