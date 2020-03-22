@@ -10,8 +10,10 @@ module.exports = {
             const user = await this.findByEmail(username);
             if (!user) throw new Error('E-mail address does not exist');
 
-            const same = await bcrypt.compare(password, user.passw0rd);
+            const same = await bcrypt.compare(password, user.password);
             if (!same) throw new Error('Password is incorrect');
+
+            if (!user.active) throw new Error('Your account is NOT active');
             return user;
         } catch (e) {
             throw new UnauthorizedError('Invalid username / password');
