@@ -6,4 +6,5 @@ module.exports = (router) => {
     router.post('/users/register', userController.create);
     router.put('/users/activate', authWare, userController.activate);
     router.put('/users/deactivate', authWare, userController.deactivate);
+    router.get('/users', authWare, userController.fetch);
 }

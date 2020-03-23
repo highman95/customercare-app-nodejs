@@ -58,6 +58,14 @@ module.exports = {
         }
     },
 
+    fetchAll: async (q) => {
+        const where = !q ? '' : 'AND name LIKE %$1%';
+        const search = !q ? [] : [q];
+
+        const results = await db.query(`SELECT id, first_name, last_name, email, gender, phone, disabled, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE 1 = 1 ${where} ORDER BY last_name`, search);
+        return results.rows;
+    },
+
     findByEmail: async (email) => {
         if (!isValidEmail(email)) throw new BadRequestError('E-mail address format is invalid');
 

@@ -45,5 +45,16 @@ module.exports = {
         } catch (e) {
             next(e)
         }
+    },
+
+    fetch: async (req, res, next) => {
+        const { q } = req.query;
+
+        try {
+            const users = await userModel.fetchAll(q);
+            res.status(200).json({ status: 'success', data: { users } });
+        } catch (e) {
+            next(e)
+        }
     }
 }
