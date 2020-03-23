@@ -12,8 +12,13 @@ module.exports = {
 
             const same = await bcrypt.compare(password, user.password);
             if (!same) throw new Error('Password is incorrect');
-
             if (user.disabled) throw new Error('Your account is NOT active');
+
+            delete user.password;
+            delete user.locked;
+            delete user.updated_at;
+            delete user.cadre_id;
+
             return user;
         } catch (e) {
             throw new UnauthorizedError('Invalid username / password');
@@ -41,7 +46,7 @@ module.exports = {
         try {
             const input = [firstName, lastName, genderLcase, email, hashedPassword, address, 2];
             const result = await db.query(`INSERT INTO ${dbEntities.users} (first_name, last_name, gender, email, password, address, cadre_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, first_name, email`, input)
-            return (result.rowCount === 0) ? null : result.rows[0];
+            return result.rows[0] || null;
         } catch (e) {
             throw new DatabaseError('User could not be saved');
         }
@@ -52,7 +57,7 @@ module.exports = {
 
         try {
             const result = await db.query(`UPDATE ${dbEntities.users} SET disabled = $1 WHERE id = $2 RETURNING id`, [disabled, userId]);
-            return (result.rowCount === 0) ? null : result.rows[0];
+            return result.rows[0] || null;
         } catch (e) {
             throw new DatabaseError(`The account could not be ${disabled ? 'de-' : ''}activated`)
         }
@@ -67,7 +72,7 @@ module.exports = {
     findByEmail: async (email) => {
         if (!isValidEmail(email)) throw new BadRequestError('E-mail address format is invalid');
 
-        const result = await db.query(`SELECT id, first_name, last_name, email, gender, phone, disabled, locked, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE email = $1`, [email]);
-        return (result.rowCount === 0) ? null : result.rows[0];
+        const result = await db.query(`SELECT *, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE email = $1`, [email]);
+        return result.rows[0] || null;
     }
 }
