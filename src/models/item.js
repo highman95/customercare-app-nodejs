@@ -16,6 +16,14 @@ module.exports = {
         }
     },
 
+    fetchAll: async (category_id, q) => {
+        if (!category_id) throw new BadRequestError('The parent-category is missing');
+        const where = !q ? '' : `AND LOWER(name) LIKE '%${q}%'`;
+
+        const results = await db.query(`SELECT id, name, price, requirements FROM ${dbEntities.items} WHERE category_id = $1 ${where} ORDER BY name`, [category_id]);
+        return results.rows;
+    },
+
     findByName: async (category_id, name) => {
         if (!category_id) throw new BadRequestError('The parent-category is missing');
         if (!name || !name.trim()) throw new BadRequestError('The category-item-name is missing');

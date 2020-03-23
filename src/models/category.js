@@ -20,6 +20,11 @@ module.exports = {
         return results.rows;
     },
 
+    find: async (id) => {
+        const result = await db.query(`SELECT id, name, extract(epoch FROM created_at) AS created_at FROM ${dbEntities.categories} WHERE id = $1`, [id]);
+        return result.rows[0] || null;
+    },
+
     findByName: async (name) => {
         if (!name || !name.trim()) throw new BadRequestError('The category-name is missing');
         const name_t = name.trim();// trim the string
