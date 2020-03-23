@@ -14,6 +14,12 @@ module.exports = {
         }
     },
 
+    fetchAll: async (q) => {
+        const where = !q ? '' : `AND LOWER(name) LIKE '%${q}%'`;
+        const results = await db.query(`SELECT id, name, extract(epoch FROM created_at) as created_at FROM ${dbEntities.categories} WHERE 1 = 1 ${where} ORDER BY name`, []);
+        return results.rows;
+    },
+
     findByName: async (name) => {
         if (!name || !name.trim()) throw new BadRequestError('The category-name is missing');
         const name_t = name.trim();// trim the string
