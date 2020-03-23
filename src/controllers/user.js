@@ -52,7 +52,7 @@ module.exports = {
 
         try {
             const users = await userModel.fetchAll(q);
-            res.status(200).json({ status: 'success', data: { users } });
+            res.status(200).json({ status: 'success', data: users });
         } catch (e) {
             next(e)
         }
