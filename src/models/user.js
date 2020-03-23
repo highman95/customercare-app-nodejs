@@ -69,7 +69,7 @@ module.exports = {
     findByEmail: async (email) => {
         if (!isValidEmail(email)) throw new BadRequestError('E-mail address format is invalid');
 
-        const result = await db.query(`SELECT * FROM ${dbEntities.users} WHERE email = $1`, [email]);
+        const result = await db.query(`SELECT id, first_name, last_name, email, gender, phone, disabled, locked, extract(epoch FROM created_at) FROM ${dbEntities.users} WHERE email = $1`, [email]);
         return (result.rowCount === 0) ? null : result.rows[0];
     }
 }
