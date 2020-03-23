@@ -1,4 +1,4 @@
-const model = require('../models/item');
+const model = require('../models/product');
 
 module.exports = {
     create: async (req, res, next) => {

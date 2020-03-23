@@ -1,5 +1,5 @@
 const model = require('../models/category');
-const modelItem = require('../models/item');
+const modelProduct = require('../models/product');
 
 module.exports = {
     create: async (req, res, next) => {
@@ -29,7 +29,7 @@ module.exports = {
 
         try {
             const category = await model.find(id);
-            if (!!category) category.products = await modelItem.fetchAll(category.id);
+            if (!!category) category.products = await modelProduct.fetchAll(category.id);
 
             res.status(200).json({ status: 'success', data: category });
         } catch (e) {

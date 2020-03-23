@@ -9,7 +9,7 @@ module.exports = {
 
         try {
             const returnValues = 'id, name, price, category_id, extract(epoch from created_at) as created_at';
-            const result = await db.query(`INSERT INTO ${dbEntities.items} (name, price, requirements, category_id) VALUES ($1, $2, $3, $4) RETURNING ${returnValues}`, [name, price, requirements, category_id]);
+            const result = await db.query(`INSERT INTO ${dbEntities.products} (name, price, requirements, category_id) VALUES ($1, $2, $3, $4) RETURNING ${returnValues}`, [name, price, requirements, category_id]);
             return result.rows[0] || null;
         } catch (e) {
             throw new DatabaseError('The category-item could not be saved')
@@ -20,7 +20,7 @@ module.exports = {
         if (!category_id) throw new BadRequestError('The parent-category is missing');
         const where = !q ? '' : `AND LOWER(name) LIKE '%${q}%'`;
 
-        const results = await db.query(`SELECT id, name, price, requirements FROM ${dbEntities.items} WHERE category_id = $1 ${where} ORDER BY name`, [category_id]);
+        const results = await db.query(`SELECT id, name, price, requirements FROM ${dbEntities.products} WHERE category_id = $1 ${where} ORDER BY name`, [category_id]);
         return results.rows;
     },
 
@@ -29,7 +29,7 @@ module.exports = {
         if (!name || !name.trim()) throw new BadRequestError('The category-item-name is missing');
         const name_t = name.trim();// trim the string
 
-        const result = await db.query(`SELECT id, name, extract(epoch from created_at) as created_at FROM ${dbEntities.items} WHERE category_id = $1 AND LOWER(name) = $2`, [category_id, name_t.toLowerCase()]);
+        const result = await db.query(`SELECT id, name, extract(epoch from created_at) as created_at FROM ${dbEntities.products} WHERE category_id = $1 AND LOWER(name) = $2`, [category_id, name_t.toLowerCase()]);
         return result.rows[0] || null;
     }
 }
