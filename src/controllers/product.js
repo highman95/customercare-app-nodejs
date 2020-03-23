@@ -6,7 +6,7 @@ module.exports = {
 
         try {
             const product = await model.create(category_id, name, price, requirements);
-            res.status(201).json({ status: 'success', data: { message: 'Category-item created successfully', product } });
+            res.status(201).json({ status: 'success', data: { message: 'Product created successfully', product } });
         } catch (e) {
             next(e)
         }
