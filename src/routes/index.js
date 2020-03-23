@@ -1,11 +1,13 @@
 const userRoutes = require('./user');
 const categoryRoutes = require('./category');
-const itemRoutes = require('./item');
+const productRoutes = require('./product');
+const customerRoutes = require('./customer');
 
 module.exports = (router) => {
     userRoutes(router);
     categoryRoutes(router);
-    itemRoutes(router);
+    productRoutes(router);
+    customerRoutes(router);
 
     // set a default PING / Health-Check route
     router.get('/ping', (req, res) => res.json({ status: 'success', error: 'connected...pong...pong...pong...' }));
