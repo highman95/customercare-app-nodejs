@@ -1,4 +1,5 @@
 const model = require('../models/category');
+const modelItem = require('../models/item');
 
 module.exports = {
     create: async (req, res, next) => {
@@ -18,6 +19,19 @@ module.exports = {
         try {
             const categories = await model.fetchAll(q);
             res.status(200).json({ status: 'success', data: categories });
+        } catch (e) {
+            next(e)
+        }
+    },
+
+    find: async (req, res, next) => {
+        const { id } = req.params;
+
+        try {
+            const category = await model.find(id);
+            if (!!category) category.products = await modelItem.fetchAll(category.id);
+
+            res.status(200).json({ status: 'success', data: category });
         } catch (e) {
             next(e)
         }
