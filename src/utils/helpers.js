@@ -13,5 +13,5 @@ module.exports = {
         });
     },
 
-    dbEntities: { users: 'users', tokens: 'tokens', categories: 'categories', products: 'products' }
+    dbEntities: { users: 'users', tokens: 'tokens', categories: 'categories', products: 'products', customers: 'customers' }
 }
