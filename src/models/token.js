@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { dbEntities, generateToken } = require('../utils/helpers');
-const { DatabaseError, InternalServerError, NotAcceptableError } = require('../utils/http-errors');
+const { BadRequestError, DatabaseError, InternalServerError, NotAcceptableError } = require('../utils/http-errors');
 
 module.exports = {
     async create(user) {
@@ -20,10 +20,17 @@ module.exports = {
             const millisecondsInElapseTimehours = process.env.JWT_ELAPSE * 60 * 60 * 1000;
             const expires_at = currentTime + millisecondsInElapseTimehours;
 
-            const result = await db.query(`INSERT INTO ${dbEntities.tokens} (user_id, code, expires_at) VALUES ($1, $2, $3) RETURNING code AS token, expires_at`, [id, token, expires_at]);
-            return (result.rowCount === 0) ? null : result.rows[0];
+            const result = await db.query(`INSERT INTO ${dbEntities.tokens} (user_id, code, expires_at) VALUES ($1, $2, $3) RETURNING expires_at`, [id, hashedPassKey, expires_at]);
+            return (result.rowCount === 0) ? null : { ...result.rows[0], token };
         } catch (e) {
             throw new DatabaseError('Token could not be saved');
         }
+    },
+
+    findByCode: async (code) => {
+        if (!code) throw new BadRequestError('Token checksum is missing');
+
+        const result = await db.query(`SELECT user_id, expires_at ${dbEntities.tokens} WHERE code = $1 LIMIT 1`, [code]);
+        return (result.rowCount === 0) ? null : result.rows[0];
     }
 }

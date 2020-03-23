@@ -1,17 +1,21 @@
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
+const userModel = require('../models/user');
 
 //#region authentication middleware
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
     const { token } = req.headers;
     if (!token) return next(new Error('Token is missing'));
 
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    if (req.body.userId && req.body.userId !== decodedToken.userId) {
-        return next(new Error('Token verification failed'));
+    let user;
+    try {
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        user = await userModel.findByEmail(decodedToken.email);
+    } catch (e) {
+        return next(e)
     }
 
-    req.userId = decodedToken.userId;
+    req.user = user;
     next();
 };
 
