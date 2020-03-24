@@ -17,7 +17,7 @@ module.exports = {
     },
 
     fetchAll: async (categoryId, q) => {
-        if (!categoryId) throw new BadRequestError('The parent-category is missing');
+        if (!categoryId) throw new BadRequestError('The category identifier is missing');
         const where = !q ? '' : `AND LOWER(name) LIKE '%${q}%'`;
 
         const results = await db.query(`SELECT id, name, price, requirements FROM ${dbEntities.products} WHERE category_id = $1 ${where} ORDER BY name`, [categoryId]);
@@ -25,11 +25,18 @@ module.exports = {
     },
 
     findByName: async (categoryId, name) => {
-        if (!categoryId) throw new BadRequestError('The parent-category is missing');
+        if (!categoryId) throw new BadRequestError('The category identifier is missing');
         if (!name || !name.trim()) throw new BadRequestError('The category-item-name is missing');
         const name_t = name.trim();// trim the string
 
-        const result = await db.query(`SELECT id, name, extract(epoch from created_at) as created_at FROM ${dbEntities.products} WHERE category_id = $1 AND LOWER(name) = $2`, [categoryId, name_t.toLowerCase()]);
+        const result = await db.query(`SELECT id, name, price, extract(epoch from created_at) as created_at FROM ${dbEntities.products} WHERE category_id = $1 AND LOWER(name) = $2`, [categoryId, name_t.toLowerCase()]);
+        return result.rows[0] || null;
+    },
+
+    find: async (id) => {
+        if (!id) throw new BadRequestError('The product identifier is missing');
+
+        const result = await db.query(`SELECT id, name, price, extract(epoch from created_at) as created_at FROM ${dbEntities.products} WHERE id = $1`, [id]);
         return result.rows[0] || null;
     }
 }
