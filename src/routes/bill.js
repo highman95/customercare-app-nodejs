@@ -1,5 +1,6 @@
 const controller = require('../controllers/bill');
+const { authWare } = require('../utils/middlewares');
 
 module.exports = (router) => {
-    router.post('/bills', controller.create);
+    router.post('/bills', authWare, controller.create);
 }
