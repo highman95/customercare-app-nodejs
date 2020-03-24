@@ -2,12 +2,12 @@ const { dbEntities } = require('../utils/helpers');
 const { BadRequestError, ConflictError, DatabaseError } = require('../utils/http-errors');
 
 module.exports = {
-    async create(name, user_id) {
-        if (!user_id) throw new BadRequestError('The user cannot be identified');
+    async create(name, userId) {
+        if (!userId) throw new BadRequestError('The user cannot be identified');
         if (!!await this.findByName(name)) throw new ConflictError('The category-name already exists');
 
         try {
-            const result = await db.query(`INSERT INTO ${dbEntities.categories} (name, user_id) VALUES ($1, $2) RETURNING id, name, extract(epoch from created_at) as created_at`, [name, user_id]);
+            const result = await db.query(`INSERT INTO ${dbEntities.categories} (name, user_id) VALUES ($1, $2) RETURNING id, name, extract(epoch from created_at) as created_at`, [name, userId]);
             return result.rows[0] || null;
         } catch (e) {
             throw new DatabaseError('The category could not be saved')

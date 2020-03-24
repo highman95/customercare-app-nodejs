@@ -3,6 +3,8 @@ const { DatabaseError, NotAcceptableError } = require('../utils/http-errors');
 
 module.exports = {
     async create(firstName, lastName, birthDate, gender, email, phone, userId) {
+        if (!userId) throw new BadRequestError('The user cannot be identified');
+
         const params = ['firstName', 'lastName', 'birthDate', 'gender', 'phone'];
         const submittedInput = { firstName, lastName, birthDate, gender, phone };
         validateParameters(submittedInput, params);
