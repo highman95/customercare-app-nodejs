@@ -36,8 +36,8 @@ module.exports = {
     },
 
     fetchAll: async () => {
-        const returnValues = 'id, customer_id, phone, address, user_id, extract(epoch FROM created_at) as created_at';
-        const results = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} ORDER BY created_at DESC`);
+        const returnValues = 'a.id, customer_id, phone, address, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
+        const results = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} a LEFT JOIN ${dbEntities.items} b ON a.id = b.bill_id GROUP BY a.id ORDER BY a.created_at DESC`);
         return results.rows;
     },
 
