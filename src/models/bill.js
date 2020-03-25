@@ -39,7 +39,7 @@ module.exports = {
         const where = customerId ? 'AND customer_id = $1' : '';
         const filter = customerId ? [customerId] : [];
 
-        const returnValues = 'a.id, customer_id, phone, address, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
+        const returnValues = 'a.id, customer_id, phone, address, status, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
         const results = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} a LEFT JOIN ${dbEntities.items} b ON a.id = b.bill_id WHERE 1=1 ${where} GROUP BY a.id ORDER BY a.created_at DESC`, filter);
         return results.rows;
     },
@@ -47,7 +47,7 @@ module.exports = {
     find: async (id) => {
         if (!id) throw new BadRequestError('The bill identifier is missing');
 
-        const returnValues = 'id, customer_id, phone, address, user_id, extract(epoch FROM created_at) as created_at';
+        const returnValues = 'id, customer_id, phone, address, status, user_id, extract(epoch FROM created_at) as created_at';
         const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} WHERE id = $1`, [id]);
         return result.rows[0] || null;
     }
