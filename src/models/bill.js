@@ -35,9 +35,12 @@ module.exports = {
         }
     },
 
-    fetchAll: async () => {
+    fetchAll: async (customerId) => {
+        const where = customerId ? 'AND customer_id = $1' : '';
+        const filter = customerId ? [customerId] : [];
+
         const returnValues = 'a.id, customer_id, phone, address, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
-        const results = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} a LEFT JOIN ${dbEntities.items} b ON a.id = b.bill_id GROUP BY a.id ORDER BY a.created_at DESC`);
+        const results = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} a LEFT JOIN ${dbEntities.items} b ON a.id = b.bill_id WHERE 1=1 ${where} GROUP BY a.id ORDER BY a.created_at DESC`, filter);
         return results.rows;
     },
 
