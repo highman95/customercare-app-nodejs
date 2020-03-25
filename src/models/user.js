@@ -74,5 +74,12 @@ module.exports = {
 
         const result = await db.query(`SELECT *, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE email = $1`, [email]);
         return result.rows[0] || null;
+    },
+
+    find: async (id) => {
+        if (!id) throw new BadRequestError('The user identifier is missing');
+
+        const result = await db.query(`SELECT *, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE id = $1`, [id]);
+        return result.rows[0] || null;
     }
 }
