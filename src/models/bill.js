@@ -38,5 +38,13 @@ module.exports = {
     fetchAll: async () => {
         const results = await db.query(`SELECT id, customer_id, phone, address, user_id, extract(epoch FROM created_at) as created_at FROM ${dbEntities.bills} ORDER BY created_at DESC`);
         return results.rows;
+    },
+
+    find: async (id) => {
+        if (!id) throw new BadRequestError('The bill identifier is missing');
+
+        const returnValues = 'id, customer_id, phone, address, user_id, extract(epoch FROM created_at) as created_at';
+        const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} WHERE id = $1`, [id]);
+        return result.rows[0] || null;
     }
 }

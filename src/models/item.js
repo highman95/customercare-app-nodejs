@@ -45,9 +45,16 @@ module.exports = {
         }
     },
 
+    fetchAll: async (billId) => {
+        if (!billId) throw new BadRequestError('The bill identifier is missing');
+
+        const results = await db.query(`SELECT id, bill_id, product_id, amount, quantity FROM ${dbEntities.items} WHERE bill_id = $1`, [billId]);
+        return results.rows;
+    },
+
     find: async (billId, productId) => {
-        if (!billId) throw new BadRequestError('The bill information is missing');
-        if (!productId) throw new BadRequestError('The product information is missing');
+        if (!billId) throw new BadRequestError('The bill identifier is missing');
+        if (!productId) throw new BadRequestError('The product identifier is missing');
 
         const result = await db.query(`SELECT id, bill_id, product_id, amount, quantity FROM ${dbEntities.items} WHERE bill_id = $1 AND product_id = $2`, [billId, productId]);
         return result.rows[0] || null;
