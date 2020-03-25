@@ -10,5 +10,16 @@ module.exports = {
         } catch (e) {
             next(e)
         }
+    },
+
+    fetch: async (req, res, next) => {
+        const { q } = req.query;
+
+        try {
+            const bills = await model.fetchAll();
+            res.status(200).json({ status: 'success', data: bills });
+        } catch (e) {
+            next(e)
+        }
     }
 }
