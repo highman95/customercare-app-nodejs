@@ -22,4 +22,11 @@ module.exports = {
             throw new DatabaseError('Customer could not be saved');
         }
     },
+
+    find: async (id) => {
+        if (!id) throw new BadRequestError('The customer identifier is missing');
+
+        const result = await db.query(`SELECT id, first_name, last_name, gender, email, phone, extract(epoch from created_at) as created_at FROM ${dbEntities.customers} WHERE id = $1`, [id]);
+        return result.rows[0] || null;
+    }
 }
