@@ -1,4 +1,5 @@
 const model = require('../models/customer');
+const modelBill = require('../models/bill');
 
 module.exports = {
     create: async (req, res, next) => {
@@ -18,6 +19,19 @@ module.exports = {
         try {
             const customers = await model.fetchAll(q);
             res.status(200).json({ status: 'success', data: customers });
+        } catch (e) {
+            next(e)
+        }
+    },
+
+    find: async (req, res, next) => {
+        const { id } = req.params;
+
+        try {
+            const customer = await model.find(id);
+            if (!!customer) customer.bills = await modelBill.fetchAll(customer.id);
+
+            res.status(200).json({ status: 'success', data: customer });
         } catch (e) {
             next(e)
         }
