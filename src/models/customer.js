@@ -23,6 +23,13 @@ module.exports = {
         }
     },
 
+    fetchAll: async (q) => {
+        const where = !q ? '' : `AND (LOWER(first_name) LIKE '%${q}%' OR LOWER(last_name) LIKE '%${q}%')`;
+
+        const results = await db.query(`SELECT id, first_name, last_name, gender, email, phone, extract(epoch FROM created_at) as created_at FROM ${dbEntities.customers} WHERE 1 = 1 ${where} ORDER BY last_name`);
+        return results.rows;
+    },
+
     find: async (id) => {
         if (!id) throw new BadRequestError('The customer identifier is missing');
 
