@@ -33,5 +33,10 @@ module.exports = {
         } finally {
             client.release()
         }
+    },
+
+    fetchAll: async () => {
+        const results = await db.query(`SELECT id, customer_id, phone, address, user_id, extract(epoch FROM created_at) as created_at FROM ${dbEntities.bills} ORDER BY created_at DESC`);
+        return results.rows;
     }
 }
