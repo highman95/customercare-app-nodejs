@@ -56,5 +56,19 @@ module.exports = {
         } catch (e) {
             next(e)
         }
+    },
+
+    find: async (req, res, next) => {
+        const { id } = req.params;
+
+        try {
+            const user = await model.find(id);
+            delete user.password;
+            delete user.locked;
+
+            res.status(200).json({ status: 'success', data: user });
+        } catch (e) {
+            next(e)
+        }
     }
 }
