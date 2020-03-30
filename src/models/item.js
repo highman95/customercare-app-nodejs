@@ -18,6 +18,8 @@ const computeInput = async (billId, { product_id, quantity = 1 }, callBack) => {
 
 module.exports = {
     async createBatch(client, billId, orders = []) {
+        if (!billId) throw new NotFoundError('Bill does not exist');
+
         try {
             const inputs = await Promise.all(orders.map(async order => await computeInput(billId, order, async (billId, productId) => await this.find(billId, productId))));
             const returnValues = 'id, bill_id, product_id, extract(epoch FROM created_at) AS created_at';
@@ -46,15 +48,15 @@ module.exports = {
     },
 
     fetchAll: async (billId) => {
-        if (!billId) throw new BadRequestError('The bill identifier is missing');
+        if (!billId) throw new NotFoundError('Bill does not exist');
 
         const results = await db.query(`SELECT id, bill_id, product_id, amount, quantity FROM ${dbEntities.items} WHERE bill_id = $1`, [billId]);
         return results.rows;
     },
 
     find: async (billId, productId) => {
-        if (!billId) throw new BadRequestError('The bill identifier is missing');
-        if (!productId) throw new BadRequestError('The product identifier is missing');
+        if (!billId) throw new NotFoundError('Bill does not exist');
+        if (!productId) throw new NotFoundError('Product does not exist');
 
         const result = await db.query(`SELECT id, bill_id, product_id, amount, quantity FROM ${dbEntities.items} WHERE bill_id = $1 AND product_id = $2`, [billId, productId]);
         return result.rows[0] || {};

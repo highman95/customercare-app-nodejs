@@ -5,9 +5,9 @@ const modelCustomer = require('../models/customer');
 
 module.exports = {
     async create(customerId, phone, address, orders, userId) {
-        if (!userId) throw new BadRequestError('The user identifier is missing');
+        if (!userId) throw new BadRequestError('Operator is not known');
         if (!phone) throw new BadRequestError('The phone number for notification is missing');
-        if (!(await modelCustomer.find(customerId)).id) throw new NotFoundError('The customer does not exist');
+        if (!(await modelCustomer.find(customerId)).id) throw new NotFoundError('Customer does not exist');
 
         if (!orders instanceof Array) throw new BadRequestError('The product(s) must be provided as an array');
         if (!orders.length) throw new BadRequestError('At least one product must be selected for this bill');
@@ -23,7 +23,7 @@ module.exports = {
             const result = await client.query(`INSERT INTO ${dbEntities.bills} (customer_id, phone, address, user_id, modifier_id) VALUES ($1, $2, $3, $4, $5) RETURNING ${returnValues}`, input);
             const bill = result.rows[0] || {};
 
-            if (bill.id) bill.items = await modelItem.createBatch(client, bill.id, orders);
+            bill.items = await modelItem.createBatch(client, bill.id, orders);
             await client.query('COMMIT');
 
             return bill;
@@ -36,6 +36,8 @@ module.exports = {
     },
 
     fetchAll: async (customerId) => {
+        if (!customerId) throw new NotFoundError('Customer does not exist');
+
         const where = customerId ? 'AND customer_id = $1' : '';
         const filter = customerId ? [customerId] : [];
 
@@ -45,7 +47,7 @@ module.exports = {
     },
 
     find: async (id) => {
-        if (!id) throw new BadRequestError('The bill identifier is missing');
+        if (!id) throw new NotFoundError('Bill does not exist');
 
         const returnValues = 'id, customer_id, phone, address, status, user_id, extract(epoch FROM created_at) as created_at';
         const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} WHERE id = $1`, [id]);

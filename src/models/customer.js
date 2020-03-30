@@ -1,9 +1,9 @@
 const { dbEntities, validateParameters } = require('../utils/helpers');
-const { DatabaseError, NotAcceptableError } = require('../utils/http-errors');
+const { DatabaseError, NotAcceptableError, NotFoundError } = require('../utils/http-errors');
 
 module.exports = {
     async create(firstName, lastName, birthDate, gender, email, phone, userId) {
-        if (!userId) throw new BadRequestError('The user cannot be identified');
+        if (!userId) throw new BadRequestError('Operator is not known');
 
         const params = ['firstName', 'lastName', 'birthDate', 'gender', 'phone'];
         const submittedInput = { firstName, lastName, birthDate, gender, phone };
@@ -31,7 +31,7 @@ module.exports = {
     },
 
     find: async (id) => {
-        if (!id) throw new BadRequestError('The customer identifier is missing');
+        if (!id) throw new NotFoundError('Customer does not exist');
 
         const result = await db.query(`SELECT id, first_name, last_name, gender, email, phone, extract(epoch from created_at) as created_at FROM ${dbEntities.customers} WHERE id = $1`, [id]);
         return result.rows[0] || {};

@@ -21,12 +21,14 @@ module.exports = {
     },
 
     find: async (id) => {
+        if (!id) throw new NotFoundError('Category does not exist');
+
         const result = await db.query(`SELECT id, name, extract(epoch FROM created_at) AS created_at FROM ${dbEntities.categories} WHERE id = $1`, [id]);
         return result.rows[0] || {};
     },
 
     findByName: async (name) => {
-        if (!name || !name.trim()) throw new BadRequestError('The category-name is missing');
+        if (!name || !name.trim()) throw new BadRequestError('Category name is missing');
 
         const result = await db.query(`SELECT id, name, extract(epoch from created_at) as created_at FROM ${dbEntities.categories} WHERE LOWER(name) = $1`, [name.trim().toLowerCase()]);
         return result.rows[0] || {};

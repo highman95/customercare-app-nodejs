@@ -29,7 +29,7 @@ module.exports = {
 
         try {
             const category = await model.find(id);
-            if (category.id) category.products = await modelProduct.fetchAll(category.id);
+            category.products = await modelProduct.fetchAll(category.id);
 
             res.status(200).json({ status: 'success', data: category });
         } catch (e) {

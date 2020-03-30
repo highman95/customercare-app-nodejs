@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { dbEntities, isValidEmail, validateParameters } = require('../utils/helpers');
-const { BadRequestError, ConflictError, DatabaseError, NotAcceptableError, UnauthorizedError } = require('../utils/http-errors');
+const { BadRequestError, ConflictError, DatabaseError, NotAcceptableError, NotFoundError, UnauthorizedError } = require('../utils/http-errors');
 
 module.exports = {
     async authenticate(username, password) {
@@ -8,11 +8,11 @@ module.exports = {
 
         try {
             const user = await this.findByEmail(username);
-            if (!user.id) throw new Error('E-mail address does not exist');
+            if (!user.id) throw new NotFoundError('User does not exist');
 
             const same = await bcrypt.compare(password, user.password);
             if (!same) throw new Error('Password is incorrect');
-            if (user.disabled) throw new Error('Your account is NOT active');
+            if (user.disabled) throw new Error('User account is inactive');
 
             delete user.password;
             delete user.locked;
@@ -52,11 +52,11 @@ module.exports = {
         }
     },
 
-    async toggleDisabled(userId, disabled) {
-        if (!userId) throw new BadRequestError('The user information is missing');
+    async toggleDisabled(id, disabled) {
+        if (!id) throw new NotFoundError('User does not exist');
 
         try {
-            const result = await db.query(`UPDATE ${dbEntities.users} SET disabled = $1 WHERE id = $2 RETURNING id`, [disabled, userId]);
+            const result = await db.query(`UPDATE ${dbEntities.users} SET disabled = $1 WHERE id = $2 RETURNING id`, [disabled, id]);
             return result.rows[0] || {};
         } catch (e) {
             throw new DatabaseError(`The account could not be ${disabled ? 'de-' : ''}activated`)
@@ -70,16 +70,19 @@ module.exports = {
     },
 
     findByEmail: async (email) => {
-        if (!isValidEmail(email)) throw new BadRequestError('E-mail address format is invalid');
+        if (!isValidEmail(email)) throw new BadRequestError('E-mail address is invalid');
 
         const result = await db.query(`SELECT *, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE email = $1`, [email]);
         return result.rows[0] || {};
     },
 
     find: async (id) => {
-        if (!id) throw new BadRequestError('The user identifier is missing');
+        if (!id) throw new NotFoundError('User does not exist');
 
         const result = await db.query(`SELECT *, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE id = $1`, [id]);
-        return result.rows[0] || {};
+        const user = result.rows[0] || {};
+        if (!user.id) throw new NotFoundError('User does not exist');
+
+        return user;
     }
 }

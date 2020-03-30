@@ -1,11 +1,11 @@
 const { dbEntities } = require('../utils/helpers');
-const { BadRequestError, ConflictError, DatabaseError } = require('../utils/http-errors');
+const { BadRequestError, ConflictError, DatabaseError, NotFoundError } = require('../utils/http-errors');
 
 module.exports = {
-    async create(categoryId, name, price, requirements) {
+    async create(categoryId, name, price, requirements = '') {
         // if (!price) throw new BadRequestError('The price is missing');
         if (!requirements) throw new BadRequestError('The requirements are missing');
-        if ((await this.findByName(categoryId, name)).id) throw new ConflictError('The product already exists');
+        if ((await this.findByName(categoryId, name)).id) throw new ConflictError('Product already exists');
 
         try {
             const returnValues = 'id, name, price, category_id, extract(epoch from created_at) as created_at';
@@ -17,7 +17,7 @@ module.exports = {
     },
 
     fetchAll: async (categoryId, q) => {
-        if (!categoryId) throw new BadRequestError('The category identifier is missing');
+        if (!categoryId) throw new NotFoundError('Category does not exist');
         const where = !q ? '' : `AND LOWER(name) LIKE '%${q}%'`;
 
         const results = await db.query(`SELECT id, name, price, requirements FROM ${dbEntities.products} WHERE category_id = $1 ${where} ORDER BY name`, [categoryId]);
@@ -25,15 +25,15 @@ module.exports = {
     },
 
     findByName: async (categoryId, name) => {
-        if (!categoryId) throw new BadRequestError('The category identifier is missing');
-        if (!name || !name.trim()) throw new BadRequestError('The category-item-name is missing');
+        if (!categoryId) throw new NotFoundError('Category does not exist');
+        if (!name || !name.trim()) throw new BadRequestError('Product name is missing');
 
         const result = await db.query(`SELECT id, name, price, extract(epoch from created_at) as created_at FROM ${dbEntities.products} WHERE category_id = $1 AND LOWER(name) = $2`, [categoryId, name.trim().toLowerCase()]);
         return result.rows[0] || {};
     },
 
     find: async (id) => {
-        if (!id) throw new BadRequestError('The product identifier is missing');
+        if (!id) throw new NotFoundError('Product does not exist');
 
         const result = await db.query(`SELECT id, name, price, extract(epoch from created_at) as created_at FROM ${dbEntities.products} WHERE id = $1`, [id]);
         return result.rows[0] || {};

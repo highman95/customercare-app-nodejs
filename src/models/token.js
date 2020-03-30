@@ -4,7 +4,7 @@ const { BadRequestError, DatabaseError, InternalServerError, NotAcceptableError 
 
 module.exports = {
     async create(user) {
-        if (!user.id) throw new NotAcceptableError('The authenticated user is missing');
+        if (!user.id) throw new NotAcceptableError('User details are missing');
 
         let hashedPassKey, currentTime = Date.now();
         try {
