@@ -29,7 +29,7 @@ module.exports = {
 
         try {
             const customer = await model.find(id);
-            if (!!customer) customer.bills = await modelBill.fetchAll(customer.id);
+            if (customer.id) customer.bills = await modelBill.fetchAll(customer.id);
 
             res.status(200).json({ status: 'success', data: customer });
         } catch (e) {

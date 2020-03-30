@@ -7,7 +7,7 @@ module.exports = {
     async create(customerId, phone, address, orders, userId) {
         if (!userId) throw new BadRequestError('The user identifier is missing');
         if (!phone) throw new BadRequestError('The phone number for notification is missing');
-        if (!await modelCustomer.find(customerId)) throw new NotFoundError('The customer does not exist');
+        if (!(await modelCustomer.find(customerId)).id) throw new NotFoundError('The customer does not exist');
 
         if (!orders instanceof Array) throw new BadRequestError('The product(s) must be provided as an array');
         if (!orders.length) throw new BadRequestError('At least one product must be selected for this bill');
@@ -21,9 +21,9 @@ module.exports = {
 
             await client.query('BEGIN');
             const result = await client.query(`INSERT INTO ${dbEntities.bills} (customer_id, phone, address, user_id, modifier_id) VALUES ($1, $2, $3, $4, $5) RETURNING ${returnValues}`, input);
-            const bill = result.rows[0] || null;
+            const bill = result.rows[0] || {};
 
-            if (!!bill) bill.items = await modelItem.createBatch(client, bill.id, orders);
+            if (bill.id) bill.items = await modelItem.createBatch(client, bill.id, orders);
             await client.query('COMMIT');
 
             return bill;
@@ -49,6 +49,6 @@ module.exports = {
 
         const returnValues = 'id, customer_id, phone, address, status, user_id, extract(epoch FROM created_at) as created_at';
         const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} WHERE id = $1`, [id]);
-        return result.rows[0] || null;
+        return result.rows[0] || {};
     }
 }

@@ -4,7 +4,7 @@ const { BadRequestError, DatabaseError, InternalServerError, NotAcceptableError 
 
 module.exports = {
     async create(user) {
-        if (!user) throw new NotAcceptableError('The authenticated user is missing');
+        if (!user.id) throw new NotAcceptableError('The authenticated user is missing');
 
         let hashedPassKey, currentTime = Date.now();
         try {
@@ -21,7 +21,7 @@ module.exports = {
             const expires_at = currentTime + millisecondsInElapseTimehours;
 
             const result = await db.query(`INSERT INTO ${dbEntities.tokens} (user_id, code, expires_at) VALUES ($1, $2, $3) RETURNING expires_at`, [id, hashedPassKey, expires_at]);
-            return (result.rowCount === 0) ? null : { ...result.rows[0], token };
+            return result.rowCount ? {} : { ...result.rows[0], token };
         } catch (e) {
             throw new DatabaseError('Token could not be saved');
         }
@@ -31,6 +31,6 @@ module.exports = {
         if (!code) throw new BadRequestError('Token checksum is missing');
 
         const result = await db.query(`SELECT user_id, expires_at ${dbEntities.tokens} WHERE code = $1 LIMIT 1`, [code]);
-        return (result.rowCount === 0) ? null : result.rows[0];
+        return result.rows[0] || {};
     }
 }

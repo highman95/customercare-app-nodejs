@@ -17,7 +17,7 @@ module.exports = {
             const returnValues = "id, first_name, last_name, phone";
 
             const result = await db.query(`INSERT INTO ${dbEntities.customers} (first_name, last_name, birth_date, gender, email, phone, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING ${returnValues}`, input);
-            return result.rows[0] || null;
+            return result.rows[0] || {};
         } catch (e) {
             throw new DatabaseError('Customer could not be saved');
         }
@@ -34,6 +34,6 @@ module.exports = {
         if (!id) throw new BadRequestError('The customer identifier is missing');
 
         const result = await db.query(`SELECT id, first_name, last_name, gender, email, phone, extract(epoch from created_at) as created_at FROM ${dbEntities.customers} WHERE id = $1`, [id]);
-        return result.rows[0] || null;
+        return result.rows[0] || {};
     }
 }

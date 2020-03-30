@@ -8,7 +8,7 @@ module.exports = {
 
         try {
             const user = await this.findByEmail(username);
-            if (!user) throw new Error('E-mail address does not exist');
+            if (!user.id) throw new Error('E-mail address does not exist');
 
             const same = await bcrypt.compare(password, user.password);
             if (!same) throw new Error('Password is incorrect');
@@ -33,7 +33,7 @@ module.exports = {
         const genderLcase = gender.toLowerCase();
         if (!['male', 'female'].includes(genderLcase)) throw new NotAcceptableError('The gender can only be male or female');
 
-        if (!!await this.findByEmail(email)) throw new ConflictError('E-mail address already exists');
+        if ((await this.findByEmail(email)).id) throw new ConflictError('E-mail address already exists');
 
         //encrypt the password and compute input parameters
         let hashedPassword;
@@ -46,7 +46,7 @@ module.exports = {
         try {
             const input = [firstName, lastName, genderLcase, email, hashedPassword, address, 2];
             const result = await db.query(`INSERT INTO ${dbEntities.users} (first_name, last_name, gender, email, password, address, cadre_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, first_name, email`, input)
-            return result.rows[0] || null;
+            return result.rows[0] || {};
         } catch (e) {
             throw new DatabaseError('User could not be saved');
         }
@@ -57,7 +57,7 @@ module.exports = {
 
         try {
             const result = await db.query(`UPDATE ${dbEntities.users} SET disabled = $1 WHERE id = $2 RETURNING id`, [disabled, userId]);
-            return result.rows[0] || null;
+            return result.rows[0] || {};
         } catch (e) {
             throw new DatabaseError(`The account could not be ${disabled ? 'de-' : ''}activated`)
         }
@@ -73,13 +73,13 @@ module.exports = {
         if (!isValidEmail(email)) throw new BadRequestError('E-mail address format is invalid');
 
         const result = await db.query(`SELECT *, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE email = $1`, [email]);
-        return result.rows[0] || null;
+        return result.rows[0] || {};
     },
 
     find: async (id) => {
         if (!id) throw new BadRequestError('The user identifier is missing');
 
         const result = await db.query(`SELECT *, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE id = $1`, [id]);
-        return result.rows[0] || null;
+        return result.rows[0] || {};
     }
 }
