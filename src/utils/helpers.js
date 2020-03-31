@@ -9,7 +9,7 @@ module.exports = {
     validateParameters: (inputParams, paramsToVerify) => {
         Object.entries(inputParams).forEach(([key, value]) => {
             if (!paramsToVerify.includes(key)) throw new BadRequestError(`Invalid Parameter - ${key} - supplied`)
-            if (!value || value.trim() === '') throw new BadRequestError(`The ${key} is missing`)
+            if (!value || !value.trim()) throw new BadRequestError(`The ${key} is missing`)
         });
     },
 

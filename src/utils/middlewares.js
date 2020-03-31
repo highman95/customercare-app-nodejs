@@ -4,8 +4,8 @@ const userModel = require('../models/user');
 
 //#region authentication middleware
 const auth = async (req, res, next) => {
-    const { token } = req.headers;
-    if (!token) return next(new Error('Token is missing'));
+    const { token = '' } = req.headers;
+    if (!token || !token.trim()) return next(new Error('Token is missing'));
 
     let user;
     try {
@@ -27,13 +27,13 @@ module.exports.authWare = auth;
 const storage = multer.diskStorage({
     // destination: (req, file, cb) => cb(null, 'public/images'),
     filename: (req, file, cb) => {
-        cb(null, `capstone-${file.fieldname}-${Date.now()}.gif`);
+        cb(null, `${file.fieldname}-${Date.now()}.gif`);
     },
 });
 
 const fileFilter = (req, file, cb) => {
-    const isProper = (file.mimetype === 'image/jpeg') || (file.mimetype === 'image/png');
-    cb(isProper ? null : new TypeError('Only JPEG/PNG images are acceptable'), isGif);
+    const isProper = ['image/jpeg', 'image/png'].includes(file.mimetype);
+    cb(isProper ? null : new Error('Only JPEG/PNG images are acceptable'), isProper);
 };
 
 module.exports.multerWare = multer({ storage, fileFilter, limits: { fileSize: 1000000 } });//.single('photo');
