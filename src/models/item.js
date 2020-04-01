@@ -32,7 +32,7 @@ module.exports = {
 
         try {
             const inputs = await Promise.all(orders.map(async ({ product_id, quantity }) => computeInput(billId, product_id, quantity)));
-            const returnValues = 'id, bill_id, product_id, extract(epoch FROM created_at) AS created_at';
+            const returnValues = 'id, bill_id, product_id, EXTRACT(epoch FROM created_at) AS created_at';
 
             const results = await client.query(`INSERT INTO ${dbEntities.items} (bill_id, product_id, amount, quantity) VALUES ${inputs.join(',')} RETURNING ${returnValues}`);
             return results.rows;
@@ -48,7 +48,7 @@ module.exports = {
         try {
             const product = await getProduct(productId);
             const input = [billId, productId, product.price, quantity];
-            const returnValues = 'id, bill_id, product_id, extract(epoch FROM created_at) AS created_at';
+            const returnValues = 'id, bill_id, product_id, EXTRACT(epoch FROM created_at) AS created_at';
 
             const result = await db.query(`INSERT INTO ${dbEntities.items} (bill_id, product_id, amount, quantity) VALUES ($1, $2, $3, $4) RETURNING ${returnValues}`, input);
             return result.rows[0] || {};

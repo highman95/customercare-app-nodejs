@@ -71,21 +71,21 @@ module.exports = {
 
     fetchAll: async (q) => {
         const where = !q ? '' : `AND (LOWER(first_name) LIKE %${q}% OR LOWER(last_name) LIKE %${q}%)`;
-        const results = await db.query(`SELECT id, first_name, last_name, email, gender, phone, disabled, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE 1 = 1 ${where} ORDER BY last_name`, []);
+        const results = await db.query(`SELECT id, first_name, last_name, email, gender, phone, disabled, EXTRACT(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE 1 = 1 ${where} ORDER BY last_name`, []);
         return results.rows;
     },
 
     findByEmail: async (email) => {
         if (!isValidEmail(email)) throw new BadRequestError('E-mail address is invalid');
 
-        const result = await db.query(`SELECT *, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE email = $1`, [email]);
+        const result = await db.query(`SELECT *, EXTRACT(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE email = $1`, [email]);
         return result.rows[0] || {};
     },
 
     find: async (id) => {
         if (!id) throw new NotFoundError('User does not exist');
 
-        const result = await db.query(`SELECT *, extract(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE id = $1`, [id]);
+        const result = await db.query(`SELECT *, EXTRACT(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE id = $1`, [id]);
         const user = result.rows[0] || {};
         if (!user.id) throw new NotFoundError('User does not exist');
 

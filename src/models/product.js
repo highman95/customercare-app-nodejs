@@ -10,7 +10,7 @@ module.exports = {
         if ((await this.findByName(categoryId, name)).id) throw new ConflictError('Product already exists');
 
         try {
-            const returnValues = 'id, name, price, category_id, extract(epoch from created_at) as created_at';
+            const returnValues = 'id, name, price, category_id, EXTRACT(epoch FROM created_at) as created_at';
             const result = await db.query(`INSERT INTO ${dbEntities.products} (name, price, requirements, category_id) VALUES ($1, $2, $3, $4) RETURNING ${returnValues}`, [name, price, requirements, categoryId]);
             return result.rows[0] || {};
         } catch (e) {
@@ -30,14 +30,14 @@ module.exports = {
         if (!categoryId) throw new NotFoundError('Category does not exist');
         if (!name || !name.trim()) throw new BadRequestError('Product name is missing');
 
-        const result = await db.query(`SELECT id, name, price, extract(epoch from created_at) as created_at FROM ${dbEntities.products} WHERE category_id = $1 AND LOWER(name) = $2`, [categoryId, name.trim().toLowerCase()]);
+        const result = await db.query(`SELECT id, name, price, EXTRACT(epoch FROM created_at) as created_at FROM ${dbEntities.products} WHERE category_id = $1 AND LOWER(name) = $2`, [categoryId, name.trim().toLowerCase()]);
         return result.rows[0] || {};
     },
 
     find: async (id) => {
         if (!id) throw new NotFoundError('Product does not exist');
 
-        const result = await db.query(`SELECT id, name, price, extract(epoch from created_at) as created_at FROM ${dbEntities.products} WHERE id = $1`, [id]);
+        const result = await db.query(`SELECT id, name, price, EXTRACT(epoch FROM created_at) as created_at FROM ${dbEntities.products} WHERE id = $1`, [id]);
         return result.rows[0] || {};
     },
 };

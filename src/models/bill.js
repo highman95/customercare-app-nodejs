@@ -19,7 +19,7 @@ module.exports = {
 
         try {
             const input = [customerId, phone, address, userId, userId];
-            const returnValues = 'id, customer_id, extract(epoch FROM created_at) AS created_at';
+            const returnValues = 'id, customer_id, EXTRACT(epoch FROM created_at) AS created_at';
 
             await client.query('BEGIN');
             const result = await client.query(`INSERT INTO ${dbEntities.bills} (customer_id, phone, address, user_id, modifier_id) VALUES ($1, $2, $3, $4, $5) RETURNING ${returnValues}`, input);
@@ -47,7 +47,7 @@ module.exports = {
 
         try {
             const input = [status.toLowerCase(), reason, userId, id];
-            const returnValues = 'id, status, updated_at';
+            const returnValues = 'id, status, EXTRACT(epoch from updated_at) as updated_at';
 
             const result = await db.query(`UPDATE ${dbEntities.bills} SET status = $1, reason = $2, modifier_id = $3 WHERE id = $4 RETURNING ${returnValues}`, input);
             return result.rows[0] || {};
@@ -71,7 +71,7 @@ module.exports = {
             filter.push(...[startDate, endDate]);
         }
 
-        const returnValues = 'a.id, customer_id, phone, address, status, reason, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
+        const returnValues = 'a.id, customer_id, phone, address, SUM(amount * quantity) as total_amount, status, reason, user_id, EXTRACT(epoch FROM a.created_at) as created_at';
         const results = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} a LEFT JOIN ${dbEntities.items} b ON a.id = b.bill_id WHERE 1=1 ${where} GROUP BY a.id ORDER BY a.created_at DESC`, filter);
         return results.rows;
     },
@@ -79,7 +79,7 @@ module.exports = {
     find: async (id) => {
         if (!id) throw new NotFoundError('Bill does not exist');
 
-        const returnValues = 'a.id, customer_id, phone, address, status, reason, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
+        const returnValues = 'a.id, customer_id, phone, address, SUM(amount * quantity) as total_amount, status, reason, user_id, EXTRACT(epoch FROM a.created_at) as created_at';
         const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} a LEFT JOIN ${dbEntities.items} b ON a.id = b.bill_id WHERE a.id = $1 GROUP BY a.id`, [id]);
         const bill = result.rows[0] || {};
         if (!bill.id) throw new NotFoundError('Bill does not exist');
