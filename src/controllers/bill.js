@@ -17,6 +17,17 @@ module.exports = {
         }
     },
 
+    editStatus: async (req, res, next) => {
+        const { params: { id }, body: { amount_paid, status, reason }, user } = req;
+
+        try {
+            const bill = await model.updateStatus(id, amount_paid, status, reason, user.id);
+            res.status(200).json({ status: 'success', data: { message: 'Bill status updated successfully', bill: { ...bill, amount_paid } } });
+        } catch (e) {
+            next(e);
+        }
+    },
+
     fetch: async (req, res, next) => {
         const { customer_id, start_date, end_date } = req.query;
 
