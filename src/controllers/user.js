@@ -8,20 +8,22 @@ module.exports = {
         try {
             const user = await model.authenticate(username, password);
             const { token, expires_at } = await modelToken.create(user);
-            res.status(200).json({ status: 'success', data: { user, token, expires_at } });
+            res.status(200).json({ status: 'success', data: { ...user, auth: { token, expires_at } } });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
     create: async (req, res, next) => {
-        const { first_name, last_name, gender, address, email, password } = req.body;
+        const {
+            first_name, last_name, gender, address, email, password,
+        } = req.body;
 
         try {
             const user = await model.create(first_name, last_name, gender, address, email, password);
             res.status(201).json({ status: 'success', data: { user, message: 'User created successfully' } });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
@@ -32,7 +34,7 @@ module.exports = {
             await model.toggleDisabled(user_id, false);
             res.status(200).json({ status: 'success', data: { message: 'The account has been activated' } });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
@@ -43,7 +45,7 @@ module.exports = {
             await model.toggleDisabled(user_id, true);
             res.status(200).json({ status: 'success', data: { message: 'The account has been de-activated' } });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
@@ -54,7 +56,7 @@ module.exports = {
             const users = await model.fetchAll(q);
             res.status(200).json({ status: 'success', data: users });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
@@ -68,7 +70,7 @@ module.exports = {
 
             res.status(200).json({ status: 'success', data: user });
         } catch (e) {
-            next(e)
+            next(e);
         }
-    }
-}
+    },
+};

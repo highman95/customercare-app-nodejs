@@ -2,28 +2,31 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/user');
 
-//#region authentication middleware
+// #region authentication middleware
 const auth = async (req, res, next) => {
     const { token = '' } = req.headers;
-    if (!token || !token.trim()) return next(new Error('Token is missing'));
+    if (!token || !token.trim()) {
+        next(new Error('Token is missing'));
+        return;
+    }
 
     let user;
     try {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         user = await userModel.findByEmail(decodedToken.email);
-    } catch (e) {
-        return next(e)
-    }
 
-    req.user = user;
-    next();
+        req.user = user;
+        next();
+    } catch (e) {
+        next(e);
+    }
 };
 
 module.exports.authWare = auth;
-//#endregion
+// #endregion
 
 
-//#region multer middleware
+// #region multer middleware
 const storage = multer.diskStorage({
     // destination: (req, file, cb) => cb(null, 'public/images'),
     filename: (req, file, cb) => {
@@ -36,5 +39,5 @@ const fileFilter = (req, file, cb) => {
     cb(isProper ? null : new Error('Only JPEG/PNG images are acceptable'), isProper);
 };
 
-module.exports.multerWare = multer({ storage, fileFilter, limits: { fileSize: 1000000 } });//.single('photo');
-//#endregion
+module.exports.multerWare = multer({ storage, fileFilter, limits: { fileSize: 1000000 } });// .single('photo');
+// #endregion

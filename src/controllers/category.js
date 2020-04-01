@@ -9,7 +9,7 @@ module.exports = {
             const category = await model.create(name, user.id);
             res.status(201).json({ status: 'success', data: { message: 'Category created successfully', category } });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
@@ -20,7 +20,7 @@ module.exports = {
             const categories = await model.fetchAll(q);
             res.status(200).json({ status: 'success', data: categories });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
@@ -33,7 +33,7 @@ module.exports = {
 
             res.status(200).json({ status: 'success', data: category });
         } catch (e) {
-            next(e)
+            next(e);
         }
-    }
-}
+    },
+};

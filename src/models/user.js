@@ -1,6 +1,10 @@
 const bcrypt = require('bcrypt');
-const { dbEntities, isValidEmail, validateParameters } = require('../utils/helpers');
-const { BadRequestError, ConflictError, DatabaseError, NotAcceptableError, NotFoundError, UnauthorizedError } = require('../utils/http-errors');
+const {
+    dbEntities, db, isValidEmail, validateParameters,
+} = require('../utils/helpers');
+const {
+    BadRequestError, ConflictError, DatabaseError, NotAcceptableError, NotFoundError, UnauthorizedError,
+} = require('../utils/http-errors');
 
 module.exports = {
     async authenticate(username, password) {
@@ -27,7 +31,9 @@ module.exports = {
 
     async create(firstName, lastName, gender, address, email, password) {
         const params = ['firstName', 'lastName', 'gender', 'email', 'password', 'address'];
-        const submittedInput = { firstName, lastName, gender, email, password, address };
+        const submittedInput = {
+            firstName, lastName, gender, email, password, address,
+        };
         validateParameters(submittedInput, params);
 
         const genderLcase = gender.toLowerCase();
@@ -35,7 +41,7 @@ module.exports = {
 
         if ((await this.findByEmail(email)).id) throw new ConflictError('E-mail address already exists');
 
-        //encrypt the password and compute input parameters
+        // encrypt the password and compute input parameters
         let hashedPassword;
         try {
             hashedPassword = await bcrypt.hash(password, 10);
@@ -45,7 +51,7 @@ module.exports = {
 
         try {
             const input = [firstName, lastName, genderLcase, email, hashedPassword, address, 2];
-            const result = await db.query(`INSERT INTO ${dbEntities.users} (first_name, last_name, gender, email, password, address, cadre_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, first_name, email`, input)
+            const result = await db.query(`INSERT INTO ${dbEntities.users} (first_name, last_name, gender, email, password, address, cadre_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, first_name, email`, input);
             return result.rows[0] || {};
         } catch (e) {
             throw new DatabaseError('User could not be saved');
@@ -59,7 +65,7 @@ module.exports = {
             const result = await db.query(`UPDATE ${dbEntities.users} SET disabled = $1 WHERE id = $2 RETURNING id`, [disabled, id]);
             return result.rows[0] || {};
         } catch (e) {
-            throw new DatabaseError(`The account could not be ${disabled ? 'de-' : ''}activated`)
+            throw new DatabaseError(`The account could not be ${disabled ? 'de-' : ''}activated`);
         }
     },
 
@@ -84,5 +90,5 @@ module.exports = {
         if (!user.id) throw new NotFoundError('User does not exist');
 
         return user;
-    }
-}
+    },
+};

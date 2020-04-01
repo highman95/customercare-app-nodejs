@@ -1,12 +1,15 @@
 const bcrypt = require('bcrypt');
-const { dbEntities, generateToken } = require('../utils/helpers');
-const { BadRequestError, DatabaseError, InternalServerError, NotAcceptableError } = require('../utils/http-errors');
+const { dbEntities, db, generateToken } = require('../utils/helpers');
+const {
+    BadRequestError, DatabaseError, InternalServerError, NotAcceptableError,
+} = require('../utils/http-errors');
 
 module.exports = {
     async create(user) {
         if (!user.id) throw new NotAcceptableError('User details are missing');
 
-        let hashedPassKey, currentTime = Date.now();
+        let hashedPassKey;
+        const currentTime = Date.now();
         try {
             hashedPassKey = await bcrypt.hash(`${process.env.PASS_KEY}-${currentTime}`, 10);
         } catch (e) {
@@ -21,7 +24,7 @@ module.exports = {
             const expires_at = currentTime + millisecondsInElapseTimehours;
 
             const result = await db.query(`INSERT INTO ${dbEntities.tokens} (user_id, code, expires_at) VALUES ($1, $2, $3) RETURNING expires_at`, [id, hashedPassKey, expires_at]);
-            return result.rowCount ? {} : { ...result.rows[0], token };
+            return result.rowCount ? { ...result.rows[0], token } : {};
         } catch (e) {
             throw new DatabaseError('Token could not be saved');
         }
@@ -32,5 +35,5 @@ module.exports = {
 
         const result = await db.query(`SELECT user_id, expires_at ${dbEntities.tokens} WHERE code = $1 LIMIT 1`, [code]);
         return result.rows[0] || {};
-    }
-}
+    },
+};

@@ -5,4 +5,4 @@ module.exports = (router) => {
     router.post('/customers', authWare, controller.create);
     router.get('/customers', authWare, controller.fetch);
     router.get('/customers/:id', authWare, controller.find);
-}
+};

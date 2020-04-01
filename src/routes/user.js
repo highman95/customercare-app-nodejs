@@ -8,4 +8,4 @@ module.exports = (router) => {
     router.put('/users/deactivate', authWare, userController.deactivate);
     router.get('/users', authWare, userController.fetch);
     router.get('/users/:id', authWare, userController.find);
-}
+};

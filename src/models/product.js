@@ -1,5 +1,7 @@
-const { dbEntities } = require('../utils/helpers');
-const { BadRequestError, ConflictError, DatabaseError, NotFoundError } = require('../utils/http-errors');
+const { dbEntities, db } = require('../utils/helpers');
+const {
+    BadRequestError, ConflictError, DatabaseError, NotFoundError,
+} = require('../utils/http-errors');
 
 module.exports = {
     async create(categoryId, name, price, requirements = '') {
@@ -12,7 +14,7 @@ module.exports = {
             const result = await db.query(`INSERT INTO ${dbEntities.products} (name, price, requirements, category_id) VALUES ($1, $2, $3, $4) RETURNING ${returnValues}`, [name, price, requirements, categoryId]);
             return result.rows[0] || {};
         } catch (e) {
-            throw new DatabaseError('The product could not be saved')
+            throw new DatabaseError('The product could not be saved');
         }
     },
 
@@ -37,5 +39,5 @@ module.exports = {
 
         const result = await db.query(`SELECT id, name, price, extract(epoch from created_at) as created_at FROM ${dbEntities.products} WHERE id = $1`, [id]);
         return result.rows[0] || {};
-    }
-}
+    },
+};

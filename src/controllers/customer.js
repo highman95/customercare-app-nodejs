@@ -3,13 +3,17 @@ const modelBill = require('../models/bill');
 
 module.exports = {
     create: async (req, res, next) => {
-        const { body: { first_name, last_name, birth_date, gender, email, phone }, user } = req;
+        const {
+            body: {
+                first_name, last_name, birth_date, gender, email, phone,
+            }, user,
+        } = req;
 
         try {
             const customer = await model.create(first_name, last_name, birth_date, gender, email, phone, user.id);
             res.status(201).json({ status: 'success', data: { customer, message: 'Customer created successfully' } });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
@@ -20,20 +24,20 @@ module.exports = {
             const customers = await model.fetchAll(q);
             res.status(200).json({ status: 'success', data: customers });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
     find: async (req, res, next) => {
-        const { id } = req.params;
+        const { params: { id }, query: { start_date, end_date } } = req;
 
         try {
             const customer = await model.find(id);
-            customer.bills = await modelBill.fetchAll(customer.id);
+            customer.bills = await modelBill.fetchAll(customer.id, start_date, end_date, false);
 
             res.status(200).json({ status: 'success', data: customer });
         } catch (e) {
-            next(e)
+            next(e);
         }
-    }
-}
+    },
+};

@@ -3,24 +3,28 @@ const modelItem = require('../models/item');
 
 module.exports = {
     create: async (req, res, next) => {
-        const { body: { customer_id, phone, address = '', orders = [] }, user } = req;
+        const {
+            body: {
+                customer_id, phone, address = '', orders = [],
+            }, user,
+        } = req;
 
         try {
             const bill = await model.create(customer_id, phone, address, orders, user.id);
             res.status(201).json({ status: 'success', data: bill });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
     fetch: async (req, res, next) => {
-        const { q } = req.query;
+        const { customer_id, start_date, end_date } = req.query;
 
         try {
-            const bills = await model.fetchAll();
+            const bills = await model.fetchAll(customer_id, start_date, end_date);
             res.status(200).json({ status: 'success', data: bills });
         } catch (e) {
-            next(e)
+            next(e);
         }
     },
 
@@ -33,7 +37,7 @@ module.exports = {
 
             res.status(200).json({ status: 'success', data: bill });
         } catch (e) {
-            next(e)
+            next(e);
         }
-    }
-}
+    },
+};

@@ -1,4 +1,4 @@
-const { dbEntities } = require('../utils/helpers');
+const { dbEntities, db } = require('../utils/helpers');
 const { BadRequestError, DatabaseError, NotFoundError } = require('../utils/http-errors');
 const modelItem = require('../models/item');
 const modelCustomer = require('../models/customer');
@@ -9,7 +9,7 @@ module.exports = {
         if (!phone) throw new BadRequestError('The phone number for notification is missing');
         if (!(await modelCustomer.find(customerId)).id) throw new NotFoundError('Customer does not exist');
 
-        if (!orders instanceof Array) throw new BadRequestError('The product(s) must be provided as an array');
+        if (!(orders instanceof Array)) throw new BadRequestError('The product(s) must be provided as an array');
         if (!orders.length) throw new BadRequestError('At least one product must be selected for this bill');
 
         // create a client (note: don't try/catch this)
@@ -31,15 +31,24 @@ module.exports = {
             await client.query('ROLLBACK');
             throw new DatabaseError('The bill could not be generated');
         } finally {
-            client.release()
+            client.release();
         }
     },
 
-    fetchAll: async (customerId) => {
-        if (!customerId) throw new NotFoundError('Customer does not exist');
+    fetchAll: async (customerId, startDate, endDate, isSearchMode = true) => {
+        if (!isSearchMode && !customerId) throw new NotFoundError('Customer does not exist');
 
-        const where = customerId ? 'AND customer_id = $1' : '';
-        const filter = customerId ? [customerId] : [];
+        let where = '';
+        const filter = [];
+        if (customerId) {
+            where += ' AND customer_id = $1';
+            filter.push(customerId);
+        }
+
+        if (startDate && endDate) {
+            where += ' AND (a.created_at >= $2 AND a.created_at <= $3)';
+            filter.push(...[startDate, endDate]);
+        }
 
         const returnValues = 'a.id, customer_id, phone, address, status, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
         const results = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} a LEFT JOIN ${dbEntities.items} b ON a.id = b.bill_id WHERE 1=1 ${where} GROUP BY a.id ORDER BY a.created_at DESC`, filter);
@@ -52,5 +61,5 @@ module.exports = {
         const returnValues = 'id, customer_id, phone, address, status, user_id, extract(epoch FROM created_at) as created_at';
         const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} WHERE id = $1`, [id]);
         return result.rows[0] || {};
-    }
-}
+    },
+};

@@ -1,5 +1,7 @@
-const { dbEntities } = require('../utils/helpers');
-const { BadRequestError, ConflictError, DatabaseError, NotFoundError } = require('../utils/http-errors');
+const { dbEntities, db } = require('../utils/helpers');
+const {
+    BadRequestError, ConflictError, DatabaseError, NotFoundError,
+} = require('../utils/http-errors');
 const modelProduct = require('./product');
 
 const getProduct = async (productId) => {
@@ -7,27 +9,27 @@ const getProduct = async (productId) => {
     if (!product.id) throw new NotFoundError('The product could not be identified');
 
     return product;
-}
+};
 
 const computeInput = async (billId, { product_id, quantity = 1 }, callBack) => {
     if ((await callBack(billId, product_id)).id) throw new ConflictError('The bill-item already exists');
 
     const product = await getProduct(product_id);
     return `(${billId}, ${product_id}, ${product.price}, ${quantity})`;
-}
+};
 
 module.exports = {
     async createBatch(client, billId, orders = []) {
         if (!billId) throw new NotFoundError('Bill does not exist');
 
         try {
-            const inputs = await Promise.all(orders.map(async order => await computeInput(billId, order, async (billId, productId) => await this.find(billId, productId))));
+            const inputs = await Promise.all(orders.map(async (order) => computeInput(billId, order, async (billId, productId) => this.find(billId, productId))));
             const returnValues = 'id, bill_id, product_id, extract(epoch FROM created_at) AS created_at';
 
             const results = await client.query(`INSERT INTO ${dbEntities.items} (bill_id, product_id, amount, quantity) VALUES ${inputs.join(',')} RETURNING ${returnValues}`);
             return results.rows;
         } catch (e) {
-            throw new DatabaseError('The bill-items/orders could not be saved')
+            throw new DatabaseError('The bill-items/orders could not be saved');
         }
     },
 
@@ -36,14 +38,14 @@ module.exports = {
         if (parseFloat(quantity) <= 0) throw new BadRequestError('The specified quantity is invalid');
 
         try {
-            const product = await getProduct(product_id);
+            const product = await getProduct(productId);
             const input = [billId, productId, product.price, quantity];
             const returnValues = 'id, bill_id, product_id, extract(epoch FROM created_at) AS created_at';
 
             const result = await db.query(`INSERT INTO ${dbEntities.items} (bill_id, product_id, amount, quantity) VALUES ($1, $2, $3, $4) RETURNING ${returnValues}`, input);
             return result.rows[0] || {};
         } catch (e) {
-            throw new DatabaseError('The bill-item/order could not be saved')
+            throw new DatabaseError('The bill-item/order could not be saved');
         }
     },
 
@@ -60,5 +62,5 @@ module.exports = {
 
         const result = await db.query(`SELECT id, bill_id, product_id, amount, quantity FROM ${dbEntities.items} WHERE bill_id = $1 AND product_id = $2`, [billId, productId]);
         return result.rows[0] || {};
-    }
-}
+    },
+};

@@ -17,4 +17,4 @@ module.exports = (router) => {
     // set a default route
     router.get('/*', (req, res) => res.status(404).json({ status: 'error', error: 'Page no longer exists' }));
     return router;
-}
+};

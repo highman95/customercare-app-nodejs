@@ -1,12 +1,16 @@
-const { dbEntities, validateParameters } = require('../utils/helpers');
-const { DatabaseError, NotAcceptableError, NotFoundError } = require('../utils/http-errors');
+const { dbEntities, db, validateParameters } = require('../utils/helpers');
+const {
+    BadRequestError, DatabaseError, NotAcceptableError, NotFoundError,
+} = require('../utils/http-errors');
 
 module.exports = {
     async create(firstName, lastName, birthDate, gender, email, phone, userId) {
         if (!userId) throw new BadRequestError('Operator is not known');
 
         const params = ['firstName', 'lastName', 'birthDate', 'gender', 'phone'];
-        const submittedInput = { firstName, lastName, birthDate, gender, phone };
+        const submittedInput = {
+            firstName, lastName, birthDate, gender, phone,
+        };
         validateParameters(submittedInput, params);
 
         const genderLcase = gender.toLowerCase();
@@ -14,7 +18,7 @@ module.exports = {
 
         try {
             const input = [firstName, lastName, birthDate, genderLcase, email, phone, userId];
-            const returnValues = "id, first_name, last_name, phone";
+            const returnValues = 'id, first_name, last_name, phone';
 
             const result = await db.query(`INSERT INTO ${dbEntities.customers} (first_name, last_name, birth_date, gender, email, phone, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING ${returnValues}`, input);
             return result.rows[0] || {};
@@ -35,5 +39,5 @@ module.exports = {
 
         const result = await db.query(`SELECT id, first_name, last_name, gender, email, phone, extract(epoch from created_at) as created_at FROM ${dbEntities.customers} WHERE id = $1`, [id]);
         return result.rows[0] || {};
-    }
-}
+    },
+};
