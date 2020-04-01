@@ -1,5 +1,7 @@
 const { dbEntities, db } = require('../utils/helpers');
-const { BadRequestError, DatabaseError, NotFoundError } = require('../utils/http-errors');
+const {
+    BadRequestError, DatabaseError, NotAcceptableError, NotFoundError,
+} = require('../utils/http-errors');
 const modelItem = require('../models/item');
 const modelCustomer = require('../models/customer');
 
@@ -35,6 +37,25 @@ module.exports = {
         }
     },
 
+    async updateStatus(id, amount = 0.00, status, reason = '', userId) {
+        if (!userId) throw new BadRequestError('Operator is not known');
+        if (!status) throw new BadRequestError('Bill status cannot be empty');
+        if (!['paid', 'failed'].includes(status.toLowerCase())) throw new BadRequestError('Bill status can be either PAID or FAILED');
+
+        const bill = await this.find(id);
+        if (parseFloat(bill.total_amount) !== parseFloat(amount)) throw new NotAcceptableError(`Amount paid is not the correct Bill amount (N${bill.total_amount})`);
+
+        try {
+            const input = [status.toLowerCase(), reason, userId, id];
+            const returnValues = 'id, status, updated_at';
+
+            const result = await db.query(`UPDATE ${dbEntities.bills} SET status = $1, reason = $2, modifier_id = $3 WHERE id = $4 RETURNING ${returnValues}`, input);
+            return result.rows[0] || {};
+        } catch (e) {
+            throw new DatabaseError('Bill status could not be updated');
+        }
+    },
+
     fetchAll: async (customerId, startDate, endDate, isSearchMode = true) => {
         if (!isSearchMode && !customerId) throw new NotFoundError('Customer does not exist');
 
@@ -50,7 +71,7 @@ module.exports = {
             filter.push(...[startDate, endDate]);
         }
 
-        const returnValues = 'a.id, customer_id, phone, address, status, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
+        const returnValues = 'a.id, customer_id, phone, address, status, reason, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
         const results = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} a LEFT JOIN ${dbEntities.items} b ON a.id = b.bill_id WHERE 1=1 ${where} GROUP BY a.id ORDER BY a.created_at DESC`, filter);
         return results.rows;
     },
@@ -58,8 +79,11 @@ module.exports = {
     find: async (id) => {
         if (!id) throw new NotFoundError('Bill does not exist');
 
-        const returnValues = 'id, customer_id, phone, address, status, user_id, extract(epoch FROM created_at) as created_at';
-        const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} WHERE id = $1`, [id]);
-        return result.rows[0] || {};
+        const returnValues = 'a.id, customer_id, phone, address, status, reason, user_id, sum(amount * quantity) as total_amount, extract(epoch FROM a.created_at) as created_at';
+        const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.bills} a LEFT JOIN ${dbEntities.items} b ON a.id = b.bill_id WHERE a.id = $1 GROUP BY a.id`, [id]);
+        const bill = result.rows[0] || {};
+        if (!bill.id) throw new NotFoundError('Bill does not exist');
+
+        return bill;
     },
 };
