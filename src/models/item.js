@@ -11,11 +11,19 @@ const getProduct = async (productId) => {
     return product;
 };
 
-const computeInput = async (billId, { product_id, quantity = 1 }, callBack) => {
-    if ((await callBack(billId, product_id)).id) throw new ConflictError('The bill-item already exists');
+const find = async (billId, productId) => {
+    if (!billId) throw new NotFoundError('Bill does not exist');
+    if (!productId) throw new NotFoundError('Product does not exist');
 
-    const product = await getProduct(product_id);
-    return `(${billId}, ${product_id}, ${product.price}, ${quantity})`;
+    const result = await db.query(`SELECT id, bill_id, product_id, amount, quantity FROM ${dbEntities.items} WHERE bill_id = $1 AND product_id = $2`, [billId, productId]);
+    return result.rows[0] || {};
+};
+
+const computeInput = async (billId, productId, quantity = 1) => {
+    if ((await find(billId, productId)).id) throw new ConflictError('The bill-item already exists');
+
+    const product = await getProduct(productId);
+    return `(${billId}, ${productId}, ${product.price}, ${quantity})`;
 };
 
 module.exports = {
@@ -23,7 +31,7 @@ module.exports = {
         if (!billId) throw new NotFoundError('Bill does not exist');
 
         try {
-            const inputs = await Promise.all(orders.map(async (order) => computeInput(billId, order, async (billId, productId) => this.find(billId, productId))));
+            const inputs = await Promise.all(orders.map(async ({ product_id, quantity }) => computeInput(billId, product_id, quantity)));
             const returnValues = 'id, bill_id, product_id, extract(epoch FROM created_at) AS created_at';
 
             const results = await client.query(`INSERT INTO ${dbEntities.items} (bill_id, product_id, amount, quantity) VALUES ${inputs.join(',')} RETURNING ${returnValues}`);
@@ -56,11 +64,5 @@ module.exports = {
         return results.rows;
     },
 
-    find: async (billId, productId) => {
-        if (!billId) throw new NotFoundError('Bill does not exist');
-        if (!productId) throw new NotFoundError('Product does not exist');
-
-        const result = await db.query(`SELECT id, bill_id, product_id, amount, quantity FROM ${dbEntities.items} WHERE bill_id = $1 AND product_id = $2`, [billId, productId]);
-        return result.rows[0] || {};
-    },
+    find,
 };
