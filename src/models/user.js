@@ -29,7 +29,6 @@ module.exports = {
             delete user.password;
             delete user.attempts;
             delete user.locked;
-            delete user.updated_at;
             delete user.cadre_id;
 
             return user;
@@ -60,7 +59,7 @@ module.exports = {
         }
 
         try {
-            const input = [firstName, lastName, genderLcase, email, hashedPassword, address, 2];
+            const input = [firstName, lastName, genderLcase, email.trim().toLowerCase(), hashedPassword, address, 2];
             const result = await db.query(`INSERT INTO ${dbEntities.users} (first_name, last_name, gender, email, password, address, cadre_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, first_name, email`, input);
             return result.rows[0] || {};
         } catch (e) {
@@ -96,21 +95,25 @@ module.exports = {
 
     fetchAll: async (q) => {
         const where = !q ? '' : `AND (LOWER(first_name) LIKE %${q}% OR LOWER(last_name) LIKE %${q}%)`;
-        const results = await db.query(`SELECT id, first_name, last_name, email, gender, phone, disabled, EXTRACT(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE 1 = 1 ${where} ORDER BY last_name`, []);
+        const returnValues = 'id, first_name, last_name, email, gender, phone, address, disabled, locked, EXTRACT(epoch FROM created_at) as created_at';
+
+        const results = await db.query(`SELECT ${returnValues} FROM ${dbEntities.users} WHERE 1 = 1 ${where} ORDER BY last_name`);
         return results.rows;
     },
 
     findByEmail: async (email) => {
         if (!isValidEmail(email)) throw new BadRequestError('E-mail address is invalid');
+        const returnValues = 'id, first_name, last_name, email, password, gender, phone, cadre_id, disabled, locked, EXTRACT(epoch FROM created_at) as created_at';
 
-        const result = await db.query(`SELECT *, EXTRACT(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE email = $1`, [email]);
+        const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.users} WHERE LOWER(email) = $1`, [email.trim().toLowerCase()]);
         return result.rows[0] || {};
     },
 
     find: async (id) => {
         if (!id) throw new NotFoundError('User does not exist');
+        const returnValues = 'id, first_name, last_name, email, gender, phone, address, disabled, locked, EXTRACT(epoch FROM created_at) as created_at';
 
-        const result = await db.query(`SELECT *, EXTRACT(epoch FROM created_at) as created_at FROM ${dbEntities.users} WHERE id = $1`, [id]);
+        const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.users} WHERE id = $1`, [id]);
         const user = result.rows[0] || {};
         if (!user.id) throw new NotFoundError('User does not exist');
 
