@@ -10,22 +10,32 @@ module.exports = {
     async authenticate(username, password) {
         if (!password) throw new BadRequestError('Password is missing');
 
+        let user;
         try {
-            const user = await this.findByEmail(username);
-            if (!user.id) throw new NotFoundError('User does not exist');
+            user = await this.findByEmail(username);
+            if (!user.id) throw new NotFoundError('User account does not exist');
+        } catch (e) {
+            throw e;
+        }
 
+        if (user.disabled) throw new UnauthorizedError('Your account is inactive');
+        if (user.locked) throw new UnauthorizedError('Your account has been locked');
+
+        try {
             const same = await bcrypt.compare(password, user.password);
             if (!same) throw new Error('Password is incorrect');
-            if (user.disabled) throw new Error('User account is inactive');
+            if (user.attempts) await this.updateAttempts(user.id, 0);// reset the attempts count
 
             delete user.password;
+            delete user.attempts;
             delete user.locked;
             delete user.updated_at;
             delete user.cadre_id;
 
             return user;
         } catch (e) {
-            throw new UnauthorizedError('Invalid username / password');
+            if (e.name === 'Error') await this.updateAttempts(user.id, ++user.attempts);
+            throw new UnauthorizedError('Invalid username and/or password');
         }
     },
 
@@ -66,6 +76,21 @@ module.exports = {
             return result.rows[0] || {};
         } catch (e) {
             throw new DatabaseError(`The account could not be ${disabled ? 'de-' : ''}activated`);
+        }
+    },
+
+    updateAttempts: async (id, attempts) => {
+        if (!id) throw new NotFoundError('User does not exist');
+        if (Number.isNaN(attempts)) throw new BadRequestError('User attempts should be a number');
+
+        try {
+            const inputs = [attempts, (attempts === 5), id];
+            const returnValues = 'id, attempts, locked, EXTRACT(epoch FROM updated_at) as updated_at';
+
+            const result = await db.query(`UPDATE ${dbEntities.users} SET attempts = $1, locked = $2 WHERE id = $3 RETURNING ${returnValues}`, inputs);
+            return result.rows[0] || {};
+        } catch (e) {
+            throw new DatabaseError(`User attempts could not be updated`);
         }
     },
 
