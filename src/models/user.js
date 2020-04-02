@@ -10,32 +10,27 @@ module.exports = {
     async authenticate(username, password) {
         if (!password) throw new BadRequestError('Password is missing');
 
-        let user;
-        try {
-            user = await this.findByEmail(username);
-            if (!user.id) throw new NotFoundError('User account does not exist');
-        } catch (e) {
-            throw e;
-        }
-
+        const user = await this.findByEmail(username);
+        if (!user.id) throw new NotFoundError('User account does not exist');
         if (user.disabled) throw new UnauthorizedError('Your account is inactive');
         if (user.locked) throw new UnauthorizedError('Your account has been locked');
 
         try {
             const same = await bcrypt.compare(password, user.password);
             if (!same) throw new Error('Password is incorrect');
-            if (user.attempts) await this.updateAttempts(user.id, 0);// reset the attempts count
-
-            delete user.password;
-            delete user.attempts;
-            delete user.locked;
-            delete user.cadre_id;
-
-            return user;
         } catch (e) {
-            if (e.name === 'Error') await this.updateAttempts(user.id, ++user.attempts);
+            if (e.name === 'Error') await this.updateAttempts(user.id, user.attempts += 1);
             throw new UnauthorizedError('Invalid username and/or password');
         }
+
+        if (user.attempts) await this.updateAttempts(user.id, 0);// reset the attempts count
+
+        delete user.password;
+        delete user.attempts;
+        delete user.locked;
+        delete user.cadre_id;
+
+        return user;
     },
 
     async create(firstName, lastName, gender, address, email, password) {
@@ -89,7 +84,7 @@ module.exports = {
             const result = await db.query(`UPDATE ${dbEntities.users} SET attempts = $1, locked = $2 WHERE id = $3 RETURNING ${returnValues}`, inputs);
             return result.rows[0] || {};
         } catch (e) {
-            throw new DatabaseError(`User attempts could not be updated`);
+            throw new DatabaseError('User attempts could not be updated');
         }
     },
 
@@ -103,7 +98,7 @@ module.exports = {
 
     findByEmail: async (email) => {
         if (!isValidEmail(email)) throw new BadRequestError('E-mail address is invalid');
-        const returnValues = 'id, first_name, last_name, email, password, gender, phone, cadre_id, disabled, locked, EXTRACT(epoch FROM created_at) as created_at';
+        const returnValues = 'id, first_name, last_name, email, password, gender, phone, cadre_id, disabled, attempts, locked, EXTRACT(epoch FROM created_at) as created_at';
 
         const result = await db.query(`SELECT ${returnValues} FROM ${dbEntities.users} WHERE LOWER(email) = $1`, [email.trim().toLowerCase()]);
         return result.rows[0] || {};

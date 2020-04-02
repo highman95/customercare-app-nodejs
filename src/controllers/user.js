@@ -66,6 +66,7 @@ module.exports = {
         try {
             const user = await model.find(id);
             delete user.password;
+            delete user.attempts;
             delete user.locked;
 
             res.status(200).json({ status: 'success', data: user });
