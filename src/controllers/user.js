@@ -8,7 +8,7 @@ module.exports = {
         try {
             const user = await model.authenticate(username, password);
             const { token, expires_at } = await modelToken.create(user);
-            res.status(200).json({ status: 'success', data: { ...user, auth: { token, expires_at } } });
+            res.json({ status: true, data: { ...user, auth: { token, expires_at } } });
         } catch (e) {
             next(e);
         }
@@ -21,7 +21,7 @@ module.exports = {
 
         try {
             const user = await model.create(first_name, last_name, gender, address, email, password);
-            res.status(201).json({ status: 'success', data: { user, message: 'User created successfully' } });
+            res.status(201).json({ status: true, data: { user, message: 'User created successfully' } });
         } catch (e) {
             next(e);
         }
@@ -32,7 +32,7 @@ module.exports = {
 
         try {
             await model.toggleDisabled(user_id, false);
-            res.status(200).json({ status: 'success', data: { message: 'The account has been activated' } });
+            res.json({ status: true, data: { message: 'The account has been activated' } });
         } catch (e) {
             next(e);
         }
@@ -43,7 +43,7 @@ module.exports = {
 
         try {
             await model.toggleDisabled(user_id, true);
-            res.status(200).json({ status: 'success', data: { message: 'The account has been de-activated' } });
+            res.json({ status: true, data: { message: 'The account has been de-activated' } });
         } catch (e) {
             next(e);
         }
@@ -54,7 +54,7 @@ module.exports = {
 
         try {
             const users = await model.fetchAll(q);
-            res.status(200).json({ status: 'success', data: users });
+            res.json({ status: true, data: users });
         } catch (e) {
             next(e);
         }
@@ -69,7 +69,7 @@ module.exports = {
             delete user.attempts;
             delete user.locked;
 
-            res.status(200).json({ status: 'success', data: user });
+            res.json({ status: true, data: user });
         } catch (e) {
             next(e);
         }

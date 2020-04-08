@@ -11,7 +11,7 @@ module.exports = {
 
         try {
             const bill = await model.create(customer_id, phone, address, orders, user.id);
-            res.status(201).json({ status: 'success', data: bill });
+            res.status(201).json({ status: true, data: bill });
         } catch (e) {
             next(e);
         }
@@ -22,7 +22,7 @@ module.exports = {
 
         try {
             const bill = await model.updateStatus(id, amount_paid, status, reason, user.id);
-            res.status(200).json({ status: 'success', data: { message: 'Bill status updated successfully', bill: { ...bill, amount_paid } } });
+            res.json({ status: true, data: { message: 'Bill status updated successfully', bill: { ...bill, amount_paid } } });
         } catch (e) {
             next(e);
         }
@@ -33,7 +33,7 @@ module.exports = {
 
         try {
             const bills = await model.fetchAll(customer_id, start_date, end_date);
-            res.status(200).json({ status: 'success', data: bills });
+            res.json({ status: true, data: bills });
         } catch (e) {
             next(e);
         }
@@ -46,7 +46,7 @@ module.exports = {
             const bill = await model.find(id);
             bill.items = await modelItem.fetchAll(bill.id);
 
-            res.status(200).json({ status: 'success', data: bill });
+            res.json({ status: true, data: bill });
         } catch (e) {
             next(e);
         }

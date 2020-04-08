@@ -7,7 +7,7 @@ module.exports = {
 
         try {
             const category = await model.create(name, user.id);
-            res.status(201).json({ status: 'success', data: { message: 'Category created successfully', category } });
+            res.status(201).json({ status: true, data: { message: 'Category created successfully', category } });
         } catch (e) {
             next(e);
         }
@@ -18,7 +18,7 @@ module.exports = {
 
         try {
             const categories = await model.fetchAll(q);
-            res.status(200).json({ status: 'success', data: categories });
+            res.json({ status: true, data: categories });
         } catch (e) {
             next(e);
         }
@@ -31,7 +31,7 @@ module.exports = {
             const category = await model.find(id);
             category.products = await modelProduct.fetchAll(category.id);
 
-            res.status(200).json({ status: 'success', data: category });
+            res.json({ status: true, data: category });
         } catch (e) {
             next(e);
         }

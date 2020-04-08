@@ -31,7 +31,7 @@ app.use('/api/v1', routes(router), (err, req, res, next) => {// eslint-disable-l
     console.log(`${err.name || err.error.name} --- ${err.message || err.error.message}`);
 
     const isCSE = ['TokenExpiredError', 'EvalError', 'Error'].includes(err.name);
-    res.status(err.statusCode || (isCSE ? 400 : 500)).send({ status: 'error', error: err.message || err.error.message });
+    res.status(err.statusCode || (isCSE ? 400 : 500)).send({ status: false, error: err.message || err.error.message });
 });
 
 
