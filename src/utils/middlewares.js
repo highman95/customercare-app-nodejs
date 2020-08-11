@@ -10,15 +10,12 @@ const auth = async (req, res, next) => {
         return;
     }
 
-    let user;
     try {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        user = await userModel.findByEmail(decodedToken.email);
-
-        req.user = user;
+        req.user = await userModel.findByEmail(decodedToken.email);
         next();
     } catch (e) {
-        next(e);
+        next(new Error(`Token is ${(e.name === 'TokenExpiredError') ? 'expired' : 'invalid'}`));
     }
 };
 
@@ -29,9 +26,7 @@ module.exports.authWare = auth;
 // #region multer middleware
 const storage = multer.diskStorage({
     // destination: (req, file, cb) => cb(null, 'public/images'),
-    filename: (req, file, cb) => {
-        cb(null, `${file.fieldname}-${Date.now()}.gif`);
-    },
+    filename: (req, file, cb) => cb(null, `${file.fieldname}-${Date.now()}.gif`),
 });
 
 const fileFilter = (req, file, cb) => {

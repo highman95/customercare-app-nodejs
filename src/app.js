@@ -4,7 +4,6 @@ const express = require('express');
 const routes = require('./routes');
 
 const app = express();
-const router = express.Router();
 
 
 // handle CORS
@@ -27,11 +26,13 @@ app.set('view engine', 'hbs');// .set('views', path.join(__dirname, '../template
 
 
 app.use(express.static(path.join(__dirname, '../public')));
-app.use('/api/v1', routes(router), (err, req, res, next) => {// eslint-disable-line
+app.use('/api/v1', routes(express.Router()), (err, req, res, next) => {// eslint-disable-line
     console.log(`${err.name || err.error.name} --- ${err.message || err.error.message}`);
+    if (res.headersSent) return next(err);
 
-    const isCSE = ['TokenExpiredError', 'EvalError', 'Error'].includes(err.name);
-    res.status(err.statusCode || (isCSE ? 400 : 500)).send({ status: false, error: err.message || err.error.message });
+    const isTAE = ['token'].includes(err.message.toLowerCase()) && ['missing', 'invalid', 'expired'].includes(err.message);
+    const isCSE = ['EvalError', 'Error'].includes(err.name);
+    res.status(err.statusCode || (isTAE ? 401 : (isCSE ? 400 : 500))).send({ status: false, error: err.message || err.error.message });// eslint-disable-line no-nested-ternary
 });
 
 
