@@ -8,7 +8,7 @@ module.exports = {
         try {
             const user = await model.authenticate(username, password);
             const { token, expires_at } = await modelToken.create(user);
-            res.json({ status: true, data: { ...user, auth: { token, expires_at } } });
+            res.json({ status: true, data: user, auth: { type: 'bearer', token, expires_at } });
         } catch (e) {
             next(e);
         }
@@ -21,7 +21,7 @@ module.exports = {
 
         try {
             const user = await model.create(first_name, last_name, gender, address, email, password);
-            res.status(201).json({ status: true, data: { user, message: 'User created successfully' } });
+            res.status(201).json({ status: true, data: user, message: 'User created successfully' });
         } catch (e) {
             next(e);
         }
@@ -32,7 +32,7 @@ module.exports = {
 
         try {
             await model.toggleDisabled(user_id, false);
-            res.json({ status: true, data: { message: 'The account has been activated' } });
+            res.json({ status: true, message: 'The account has been activated' });
         } catch (e) {
             next(e);
         }
@@ -43,7 +43,7 @@ module.exports = {
 
         try {
             await model.toggleDisabled(user_id, true);
-            res.json({ status: true, data: { message: 'The account has been de-activated' } });
+            res.json({ status: true, message: 'The account has been de-activated' });
         } catch (e) {
             next(e);
         }
