@@ -14,4 +14,15 @@ module.exports = {
             next(e);
         }
     },
+
+    find: async (req, res, next) => {
+        const { id } = req.params;
+
+        try {
+            const audit = await model.find(id);
+            res.json({ status: true, data: audit });
+        } catch (e) {
+            next(e);
+        }
+    },
 };

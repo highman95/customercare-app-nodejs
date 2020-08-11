@@ -37,4 +37,13 @@ module.exports = {
 
         return (await db.query(`SELECT * FROM ${dbEntities.audits} a WHERE 1=1 ${where} ORDER BY a.created_at DESC`, filter)).rows;
     },
+
+    find: async (id) => {
+        if (!id) throw new NotFoundError('Audit does not exist');
+
+        const result = await db.query(`SELECT * FROM ${dbEntities.audits} a WHERE a.id = $1 GROUP BY a.id`, [id]);
+        if (!result.rows[0].id) throw new NotFoundError('Audit does not exist');
+
+        return result.rows[0];
+    },
 };
