@@ -3,10 +3,10 @@ const modelToken = require('../models/token');
 
 module.exports = {
     authenticate: async (req, res, next) => {
-        const { body: { username, password } } = req;
+        const { body: { username, email, password } } = req;
 
         try {
-            const user = await model.authenticate(username, password);
+            const user = await model.authenticate(username || email, password);
             const { token, expires_at } = await modelToken.create(user);
             res.json({ status: true, data: user, auth: { type: 'bearer', token, expires_at } });
         } catch (e) {
