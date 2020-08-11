@@ -32,7 +32,8 @@ app.use('/api/v1', routes(express.Router()), (err, req, res, next) => {// eslint
     console.log(`${err.name || err.error.name} --- ${err.message || err.error.message}`);
     if (res.headersSent) return next(err);
 
-    const isTAE = ['token'].includes(err.message.toLowerCase()) && ['missing', 'invalid', 'expired'].includes(err.message);
+    const messageParts = err.message.toLowerCase().split(' ');
+    const isTAE = messageParts.includes('token') && (['missing', 'invalid', 'expired'].findIndex((m) => messageParts.includes(m)) !== -1);
     const isCSE = ['EvalError', 'Error'].includes(err.name);
     res.status(err.statusCode || (isTAE ? 401 : (isCSE ? 400 : 500))).send({ status: false, error: err.message || err.error.message });// eslint-disable-line no-nested-ternary
 });
