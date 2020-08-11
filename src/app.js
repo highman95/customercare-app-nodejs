@@ -1,9 +1,11 @@
 const path = require('path');
 const express = require('express');
+const compression = require('compression');
 // const hbs = require('hbs');
 const routes = require('./routes');
 
 const app = express();
+app.use(compression());
 
 
 // handle CORS
