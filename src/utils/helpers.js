@@ -15,7 +15,14 @@ module.exports = {
     },
 
     dbEntities: {
-        users: 'users', tokens: 'tokens', categories: 'categories', products: 'products', customers: 'customers', bills: 'bills', items: 'items',
+        users: 'users',
+        tokens: 'tokens',
+        categories: 'categories',
+        products: 'products',
+        customers: 'customers',
+        bills: 'bills',
+        items: 'items',
+        audits: 'audits',
     },
 
     db,
