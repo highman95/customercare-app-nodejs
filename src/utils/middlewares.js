@@ -4,7 +4,8 @@ const userModel = require('../models/user');
 
 // #region authentication middleware
 const auth = async (req, res, next) => {
-    const { token = '' } = req.headers;
+    const { authorization = '' } = req.headers;
+    const [, token] = authorization.split(' ');
     if (!token || !token.trim()) {
         next(new Error('Token is missing'));
         return;
