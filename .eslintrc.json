@@ -16,10 +16,6 @@
         "ecmaVersion": 2018
     },
     "rules": {
-        "indent": [
-            "error",
-            4
-        ],
         "no-console": "off",
         "camelcase": "off",
         "max-len": "off"
