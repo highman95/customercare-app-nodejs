@@ -10,7 +10,9 @@ module.exports = {
     } = req;
 
     try {
-      const customer = await model.create(first_name, last_name, birth_date, gender, email, phone, user.id);
+      const customer = await model.create(
+        first_name, last_name, birth_date, gender, email, phone, user.id,
+      );
       res.status(201).json({ status: true, data: { customer, message: 'Customer created successfully' } });
     } catch (e) {
       next(e);

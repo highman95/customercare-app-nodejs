@@ -3,7 +3,9 @@ const { BadRequestError, DatabaseError, NotFoundError } = require('../utils/http
 // const auditDb = ''; // mongo-db | redis | kafka
 
 module.exports = {
-  create: async (actor, url, narration, actionType, ipAddress, requestBody, responseBody, remarks) => {
+  create: async (
+    actor, url, narration, actionType, ipAddress, requestBody, responseBody, remarks,
+  ) => {
     if (!actor) throw new BadRequestError('Actor information is missing');
     if (!url) throw new BadRequestError('Url is missing');
     if (!actionType) throw new BadRequestError('Action-Type is missing');

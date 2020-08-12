@@ -35,5 +35,7 @@ const fileFilter = (req, file, cb) => {
   cb(isProper ? null : new Error('Only JPEG/PNG images are acceptable'), isProper);
 };
 
-module.exports.multerWare = multer({ storage, fileFilter, limits: { fileSize: 1000000 } });// .single('photo');
+module.exports.multerWare = multer(
+  { storage, fileFilter, limits: { fileSize: 1000000 } },
+);// .single('photo');
 // #endregion

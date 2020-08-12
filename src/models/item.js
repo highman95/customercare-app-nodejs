@@ -31,7 +31,9 @@ module.exports = {
     if (!billId) throw new NotFoundError('Bill does not exist');
 
     try {
-      const inputs = await Promise.all(orders.map(async ({ product_id, quantity }) => computeInput(billId, product_id, quantity)));
+      const inputs = await Promise.all(orders.map(async (
+        { product_id, quantity },
+      ) => computeInput(billId, product_id, quantity)));
       const returnValues = 'id, bill_id, product_id, EXTRACT(epoch FROM created_at) AS created_at';
 
       const results = await client.query(`INSERT INTO ${dbEntities.items} (bill_id, product_id, amount, quantity) VALUES ${inputs.join(',')} RETURNING ${returnValues}`);

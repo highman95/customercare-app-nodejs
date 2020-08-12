@@ -3,7 +3,8 @@ const {
   dbEntities, db, isValidEmail, validateParameters,
 } = require('../utils/helpers');
 const {
-  BadRequestError, ConflictError, DatabaseError, NotAcceptableError, NotFoundError, UnauthorizedError,
+  BadRequestError, ConflictError, DatabaseError, NotAcceptableError, NotFoundError,
+  UnauthorizedError,
 } = require('../utils/http-errors');
 
 module.exports = {
@@ -54,8 +55,9 @@ module.exports = {
     }
 
     try {
-      const input = [firstName, lastName, genderLcase, email.trim().toLowerCase(), hashedPassword, address, 2];
-      const result = await db.query(`INSERT INTO ${dbEntities.users} (first_name, last_name, gender, email, password, address, cadre_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, first_name, email`, input);
+      const result = await db.query(`INSERT INTO ${dbEntities.users} (first_name, last_name, gender, email, password, address, cadre_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, first_name, email`, [
+        firstName, lastName, genderLcase, email.trim().toLowerCase(), hashedPassword, address, 2,
+      ]);
       return result.rows[0] || {};
     } catch (e) {
       throw new DatabaseError('User could not be saved');
