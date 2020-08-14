@@ -29,7 +29,7 @@ app.set('view engine', 'hbs');// .set('views', path.join(__dirname, '../template
 
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/v1', routes(express.Router()), (err, req, res, next) => {// eslint-disable-line
-  console.log(`${err.name || err.error.name} --- ${err.message || err.error.message}`);
+  // console.log(`${err.name || err.error.name} --- ${err.message || err.error.message}`);
   if (res.headersSent) return next(err);
 
   const messageParts = err.message.toLowerCase().split(' ');
