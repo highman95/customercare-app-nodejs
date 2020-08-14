@@ -1,36 +1,39 @@
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
+const userModel = require('../models/user');
 
-//#region authentication middleware
-const auth = (req, res, next) => {
-    const { token } = req.headers;
-    if (!!token) return next(new Error('Token is missing'))
-
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    if (req.body.userId && req.body.userId !== decodedToken.userId) {
-        return next(new Error('Token verification failed'));
+// #region authentication middleware
+const auth = async (req, res, next) => {
+    const { authorization = '' } = req.headers;
+    const [, token] = authorization.split(' ');
+    if (!token || !token.trim()) {
+        next(new Error('Token is missing'));
+        return;
     }
 
-    req.userId = decodedToken.userId;
-    next();
+    try {
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = await userModel.findByEmail(decodedToken.email);
+        next();
+    } catch (e) {
+        next(new Error(`Token is ${(e.name === 'TokenExpiredError') ? 'expired' : 'invalid'}`));
+    }
 };
 
-module.exports.auth = auth;
-//#endregion
+module.exports.authWare = auth;
+// #endregion
 
 
-//#region multer middleware
+// #region multer middleware
 const storage = multer.diskStorage({
     // destination: (req, file, cb) => cb(null, 'public/images'),
-    filename: (req, file, cb) => {
-        cb(null, `capstone-${file.fieldname}-${Date.now()}.gif`);
-    },
+    filename: (req, file, cb) => cb(null, `${file.fieldname}-${Date.now()}.gif`),
 });
 
 const fileFilter = (req, file, cb) => {
-    const isProper = (file.mimetype === 'image/jpeg') || (file.mimetype === 'image/png');
-    cb(isProper ? null : new TypeError('Only JPEG/PNG images are acceptable'), isGif);
+    const isProper = ['image/jpeg', 'image/png'].includes(file.mimetype);
+    cb(isProper ? null : new Error('Only JPEG/PNG images are acceptable'), isProper);
 };
 
-module.exports.multer = multer({ storage, fileFilter, limits: { fileSize: 1000000 } });//.single('photo');
-//#endregion
+module.exports.multerWare = multer({ storage, fileFilter, limits: { fileSize: 1000000 } });// .single('photo');
+// #endregion

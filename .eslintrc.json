@@ -21,6 +21,7 @@
             4
         ],
         "no-console": "off",
-        "camelcase": "off"
+        "camelcase": "off",
+        "max-len": "off"
     }
 }
