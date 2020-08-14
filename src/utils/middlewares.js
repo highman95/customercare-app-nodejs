@@ -23,7 +23,6 @@ const auth = async (req, res, next) => {
 module.exports.authWare = auth;
 // #endregion
 
-
 // #region multer middleware
 const storage = multer.diskStorage({
   // destination: (req, file, cb) => cb(null, 'public/images'),

@@ -2,8 +2,8 @@ const { dbEntities, db } = require('../utils/helpers');
 const {
   BadRequestError, DatabaseError, NotAcceptableError, NotFoundError,
 } = require('../utils/http-errors');
-const modelItem = require('../models/item');
-const modelCustomer = require('../models/customer');
+const modelItem = require('./item');
+const modelCustomer = require('./customer');
 
 module.exports = {
   async create(customerId, phone, address, orders, userId) {

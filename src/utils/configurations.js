@@ -13,7 +13,6 @@ db.on('error', (e) => console.error(`Cannot connect to database...${e.message}`)
 module.exports.db = db;
 // #endregion
 
-
 // #region cloudinary configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
